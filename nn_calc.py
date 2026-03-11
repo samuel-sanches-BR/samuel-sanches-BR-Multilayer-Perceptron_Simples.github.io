@@ -381,7 +381,12 @@ def nn_run_all(X_s,Y_s,lr_s,w1_0,w1_1,w2_00,w2_01,w2_10,w2_11,w3_0,w3_1,epochs_s
             ]
         })
 
-        return json.dumps({"ok":True,"steps":steps})
+        summary = {
+            "X": X, "Y": Y, "lr": lr, "epochs": epochs,
+            "yp_f": float(yp_f), "err_f": float(hist_e[-1])
+        }
+
+        return json.dumps({"ok":True, "steps":steps, "summary":summary})
     except Exception as e:
         import traceback
         return json.dumps({"ok":False,"error":str(e),"tb":traceback.format_exc()})
