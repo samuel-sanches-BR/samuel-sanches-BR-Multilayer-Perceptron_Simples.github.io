@@ -237,9 +237,11 @@ layout: null
     <div class="step-title" id="step-title"></div>
     <div class="step-content" id="step-content"></div>
 
-    <div style="display:flex;gap:12px;margin-top:28px;padding-top:20px;border-top:1px solid var(--border)">
+    <div style="display:flex;gap:12px;margin-top:28px;padding-top:20px;border-top:1px solid var(--border); align-items: center; flex-wrap: wrap;">
       <button class="btn-nav" id="btn-prev" onclick="navigate(-1)">← Anterior</button>
       <button class="btn-nav next" id="btn-next" onclick="navigate(+1)">Próximo →</button>
+      <div style="flex-grow: 1;"></div>
+      <button class="btn-nav" id="btn-skip" onclick="goTo(_steps.length - 1)" style="border-color: var(--orange); color: var(--orange);">⏭ Pular para o Final</button>
     </div>
   </div>
 
@@ -359,15 +361,17 @@ layout: null
   }
 
   // ── Render ─────────────────────────────────────────────────────────────────
-  function renderStep(n) {
+function renderStep(n) {
     const step = _steps[n];
     document.getElementById('cur-step').textContent  = n + 1;
     document.getElementById('step-title').textContent = step.title;
     document.getElementById('btn-prev').disabled = (n === 0);
     document.getElementById('btn-next').disabled = (n === _steps.length - 1);
-    document.getElementById('btn-next').textContent = (n === _steps.length - 1) ? '✓ Concluído' : 'Próximo →';
+    document.getElementById('btn-next').textContent = (n === _steps.length - 1) ? '✓ Concluído' : 'Próximo →';        
+    document.getElementById('btn-skip').style.display = (n === _steps.length - 1) ? 'none' : 'block';
+    
     updateDots();
-
+  
     const content = document.getElementById('step-content');
     content.innerHTML = '';
 
