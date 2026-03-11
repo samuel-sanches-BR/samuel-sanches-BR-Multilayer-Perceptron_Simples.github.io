@@ -1,0 +1,464 @@
+---
+layout: null
+---
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rede Neural — Passo a Passo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:       #0a0e1a;
+      --surface:  #111827;
+      --border:   #1e2d45;
+      --teal:     #00d4aa;
+      --teal-dim: #00896e;
+      --orange:   #ff6b35;
+      --text:     #e2e8f0;
+      --muted:    #64748b;
+      --mono:     'Space Mono', monospace;
+      --sans:     'DM Sans', sans-serif;
+    }
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 40px 20px 60px;
+      background-image:
+        radial-gradient(ellipse 80% 40% at 50% -10%, rgba(0,212,170,0.07) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 30% at 90% 90%, rgba(255,107,53,0.05) 0%, transparent 60%);
+    }
+    .wrapper { max-width: 860px; margin: 0 auto; }
+
+    /* Header */
+    header { margin-bottom: 36px; border-left: 3px solid var(--teal); padding-left: 18px; }
+    header .label { font-family: var(--mono); font-size: 0.7rem; color: var(--teal); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 8px; }
+    header h1 { font-family: var(--mono); font-size: clamp(1.3rem, 4vw, 1.9rem); font-weight: 700; line-height: 1.2; color: #fff; }
+    header p { margin-top: 10px; color: var(--muted); font-size: 0.92rem; font-weight: 300; max-width: 580px; line-height: 1.6; }
+    header .updated { margin-top: 14px; font-size: 0.72rem; color: var(--teal-dim); font-family: var(--mono); }
+
+    /* Cards */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px 32px; margin-bottom: 20px; }
+    .card-title { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--teal); margin-bottom: 20px; }
+
+    /* Loading */
+    #loading-card { text-align: center; }
+    .spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--teal); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 20px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #step-list { list-style: none; text-align: left; max-width: 340px; margin: 20px auto 0; }
+    #step-list li { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); padding: 6px 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; transition: color 0.3s; }
+    #step-list li .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); flex-shrink: 0; transition: background 0.3s; }
+    #step-list li.done { color: var(--teal); } #step-list li.done .dot { background: var(--teal); }
+    #step-list li.active { color: var(--text); } #step-list li.active .dot { background: var(--orange); animation: pulse 1s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    #load-error { display:none; margin-top:16px; padding:12px 16px; background:rgba(255,107,53,0.1); border:1px solid rgba(255,107,53,0.4); border-radius:8px; font-family:var(--mono); font-size:0.8rem; color:var(--orange); text-align:left; }
+
+    /* Config card */
+    #config-card { display: none; }
+    .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media(max-width:580px){ .config-grid{ grid-template-columns:1fr; } }
+    .input-group label { display:flex; justify-content:space-between; font-size:0.82rem; font-weight:600; color:var(--muted); margin-bottom:8px; }
+    .input-group label .val { font-family:var(--mono); color:var(--teal); }
+    input[type=range] { -webkit-appearance:none; width:100%; height:4px; background:var(--border); border-radius:2px; outline:none; cursor:pointer; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:var(--teal); border:2px solid var(--bg); box-shadow:0 0 8px rgba(0,212,170,0.5); }
+    input[type=number] { width:100%; background:#0d1525; border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:var(--mono); font-size:0.85rem; padding:8px 12px; outline:none; transition:border-color 0.2s; }
+    input[type=number]:focus { border-color:var(--teal); }
+    .hint { font-size:0.71rem; color:var(--muted); margin-top:5px; line-height:1.4; }
+    .w2-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .section-label { font-family:var(--mono); font-size:0.68rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--teal-dim); margin-bottom:12px; margin-top:4px; }
+
+    /* Buttons */
+    .btn-primary { width:100%; padding:15px; background:var(--teal); color:var(--bg); border:none; border-radius:10px; font-family:var(--mono); font-size:0.88rem; font-weight:700; letter-spacing:0.08em; cursor:pointer; transition:background 0.2s,transform 0.15s,box-shadow 0.2s; }
+    .btn-primary:hover:not(:disabled) { background:#00f0c2; box-shadow:0 0 20px rgba(0,212,170,0.35); transform:translateY(-1px); }
+    .btn-primary:disabled { background:var(--teal-dim); cursor:not-allowed; transform:none; }
+
+    /* Computing overlay */
+    #computing-card { display:none; text-align:center; }
+    .computing-spinner { width:48px; height:48px; border:3px solid var(--border); border-top-color:var(--orange); border-radius:50%; animation:spin 0.7s linear infinite; margin:0 auto 20px; }
+    #computing-card p { color:var(--muted); font-family:var(--mono); font-size:0.82rem; }
+
+    /* Step card */
+    #step-card { display:none; }
+
+    /* Step nav */
+    .step-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
+    .step-nav .step-indicator { font-family:var(--mono); font-size:0.75rem; color:var(--muted); }
+    .step-nav .step-indicator span { color:var(--teal); }
+    .step-title { font-family:var(--mono); font-size:1.1rem; color:#fff; margin-bottom:20px; padding-bottom:14px; border-bottom:1px solid var(--border); }
+    .step-dots { display:flex; gap:6px; margin-top:4px; }
+    .step-dot { width:7px; height:7px; border-radius:50%; background:var(--border); cursor:pointer; transition:background 0.2s; }
+    .step-dot.active { background:var(--teal); }
+    .step-dot.visited { background:var(--teal-dim); }
+
+    .btn-nav { padding:10px 22px; background:none; border:1px solid var(--border); border-radius:8px; color:var(--muted); font-family:var(--mono); font-size:0.8rem; cursor:pointer; transition:all 0.2s; }
+    .btn-nav:hover:not(:disabled) { border-color:var(--teal); color:var(--teal); }
+    .btn-nav:disabled { opacity:0.3; cursor:not-allowed; }
+    .btn-nav.next { background:var(--teal); border-color:var(--teal); color:var(--bg); font-weight:700; }
+    .btn-nav.next:hover:not(:disabled) { background:#00f0c2; }
+
+    /* Step sections */
+    .step-content > * + * { margin-top: 16px; }
+
+    .sec-title { font-family:var(--mono); font-size:1rem; color:#fff; font-weight:700; margin-top:24px !important; }
+    .sec-subtitle { font-family:var(--mono); font-size:0.82rem; color:var(--teal); margin-top:20px !important; letter-spacing:0.06em; border-left:2px solid var(--teal); padding-left:10px; }
+    .sec-text { color:var(--muted); font-size:0.9rem; line-height:1.7; }
+    .sec-math { overflow-x:auto; padding:14px 0; }
+    .sec-img img { width:100%; border-radius:10px; border:1px solid var(--border); }
+
+    .sec-highlight { padding:14px 18px; border-radius:10px; font-size:0.88rem; line-height:1.6; white-space:pre-line; }
+    .sec-highlight.teal { background:rgba(0,212,170,0.06); border:1px solid rgba(0,212,170,0.22); color:var(--teal); }
+    .sec-highlight.orange { background:rgba(255,107,53,0.06); border:1px solid rgba(255,107,53,0.22); color:var(--orange); }
+
+    /* Table */
+    .sec-table { overflow-x:auto; }
+    .sec-table table { width:100%; border-collapse:collapse; font-family:var(--mono); font-size:0.76rem; }
+    .sec-table th { text-align:left; padding:8px 14px; color:var(--muted); border-bottom:1px solid var(--border); font-weight:400; letter-spacing:0.08em; }
+    .sec-table td { padding:9px 14px; border-bottom:1px solid rgba(30,45,69,0.5); color:var(--text); }
+    .sec-table tr:hover td { background:rgba(255,255,255,0.02); }
+
+    /* Reset link */
+    .reset-link { font-family:var(--mono); font-size:0.72rem; color:var(--muted); background:none; border:none; cursor:pointer; text-decoration:underline; padding:0; }
+    .reset-link:hover { color:var(--orange); }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header>
+    <div class="label">Aprendizado de Máquina · Demonstração Interativa</div>
+    <h1>Rede Neural Simples<br>Passo a Passo</h1>
+    <p>Configure os pesos e hiperparâmetros, depois avance pelas etapas para ver as contas do forward pass, backpropagation e o treinamento completo.</p>
+    <p class="updated">última atualização: {{ site.time | date: "%d/%m/%Y" }}</p>
+  </header>
+
+  <!-- Loading Pyodide -->
+  <div class="card" id="loading-card">
+    <div class="spinner"></div>
+    <ul id="step-list">
+      <li id="s1"><span class="dot"></span> Iniciando WebAssembly (Pyodide)</li>
+      <li id="s2"><span class="dot"></span> Carregando NumPy + Matplotlib</li>
+      <li id="s3"><span class="dot"></span> Lendo modelo Python</li>
+    </ul>
+    <div id="load-error"></div>
+  </div>
+
+  <!-- Config -->
+  <div class="card" id="config-card">
+    <div class="card-title">// Configurar a Rede</div>
+
+    <div class="config-grid">
+      <div>
+        <div class="section-label">Dados e Hiperparâmetros</div>
+        <div class="input-group" style="margin-bottom:16px">
+          <label>Entrada X <span class="val" id="v-X">1.0</span></label>
+          <input type="range" id="inp-X" min="-2" max="2" step="0.1" value="1.0"
+                 oninput="document.getElementById('v-X').textContent=parseFloat(this.value).toFixed(1)">
+        </div>
+        <div class="input-group" style="margin-bottom:16px">
+          <label>Alvo y <span class="val" id="v-Y">0.0</span></label>
+          <input type="range" id="inp-Y" min="0" max="1" step="0.1" value="0.0"
+                 oninput="document.getElementById('v-Y').textContent=parseFloat(this.value).toFixed(1)">
+        </div>
+        <div class="input-group" style="margin-bottom:16px">
+          <label>Taxa de Aprendizado (lr) <span class="val" id="v-lr">0.50</span></label>
+          <input type="range" id="inp-lr" min="0.01" max="2.0" step="0.01" value="0.5"
+                 oninput="document.getElementById('v-lr').textContent=parseFloat(this.value).toFixed(2)">
+          <p class="hint">Alto → instável. Baixo → lento.</p>
+        </div>
+        <div class="input-group">
+          <label>Épocas <span class="val" id="v-ep">100</span></label>
+          <input type="range" id="inp-ep" min="10" max="500" step="10" value="100"
+                 oninput="document.getElementById('v-ep').textContent=this.value">
+        </div>
+      </div>
+
+      <div>
+        <div class="section-label">Pesos Iniciais</div>
+        <p class="hint" style="margin-bottom:12px">W1: X → Oculta A</p>
+        <div class="w2-grid" style="margin-bottom:14px">
+          <div><label style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:4px">W1[0]</label>
+            <input type="number" id="w1-0" value="0.5" step="0.1"></div>
+          <div><label style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:4px">W1[1]</label>
+            <input type="number" id="w1-1" value="-0.2" step="0.1"></div>
+        </div>
+
+        <p class="hint" style="margin-bottom:12px">W2: Oculta A → Oculta B  (2×2)</p>
+        <div class="w2-grid" style="margin-bottom:14px">
+          <div><label style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:4px">W2[0,0]</label>
+            <input type="number" id="w2-00" value="0.4" step="0.1"></div>
+          <div><label style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:4px">W2[0,1]</label>
+            <input type="number" id="w2-01" value="0.1" step="0.1"></div>
+          <div><label style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:4px">W2[1,0]</label>
+            <input type="number" id="w2-10" value="-0.3" step="0.1"></div>
+          <div><label style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:4px">W2[1,1]</label>
+            <input type="number" id="w2-11" value="0.5" step="0.1"></div>
+        </div>
+
+        <p class="hint" style="margin-bottom:12px">W3: Oculta B → Saída</p>
+        <div class="w2-grid">
+          <div><label style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:4px">W3[0]</label>
+            <input type="number" id="w3-0" value="0.7" step="0.1"></div>
+          <div><label style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:4px">W3[1]</label>
+            <input type="number" id="w3-1" value="-0.1" step="0.1"></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:28px">
+      <button class="btn-primary" id="btn-start">▶ CALCULAR TODOS OS PASSOS</button>
+    </div>
+  </div>
+
+  <!-- Computing -->
+  <div class="card" id="computing-card">
+    <div class="computing-spinner"></div>
+    <p>Executando forward pass, backpropagation e gerando todos os gráficos…<br>
+       <span style="color:var(--muted);font-size:0.75rem">(pode levar alguns segundos)</span></p>
+  </div>
+
+  <!-- Step navigator -->
+  <div class="card" id="step-card">
+    <div class="step-nav">
+      <div>
+        <div class="step-indicator">Passo <span id="cur-step">1</span> de <span id="tot-steps">8</span></div>
+        <div class="step-dots" id="step-dots"></div>
+      </div>
+      <button class="reset-link" onclick="resetToConfig()">← reconfigurar</button>
+    </div>
+
+    <div class="step-title" id="step-title"></div>
+    <div class="step-content" id="step-content"></div>
+
+    <div style="display:flex;gap:12px;margin-top:28px;padding-top:20px;border-top:1px solid var(--border)">
+      <button class="btn-nav" id="btn-prev" onclick="navigate(-1)">← Anterior</button>
+      <button class="btn-nav next" id="btn-next" onclick="navigate(+1)">Próximo →</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let _pyodide = null;
+  let _steps   = [];
+  let _cur     = 0;
+
+  // ── Loading helpers ────────────────────────────────────────────────────────
+  function stepLoad(id, state) { document.getElementById(id).className = state; }
+  function showLoadError(msg) {
+    const b = document.getElementById('load-error');
+    b.style.display = 'block'; b.textContent = '✗ ' + msg;
+    document.querySelector('.spinner').style.display = 'none';
+  }
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  async function init() {
+    if (typeof loadPyodide === 'undefined') {
+      showLoadError('Falha ao carregar o Pyodide. Verifique a conexão e recarregue.');
+      return;
+    }
+    try {
+      stepLoad('s1','active');
+      _pyodide = await loadPyodide();
+      stepLoad('s1','done');
+
+      stepLoad('s2','active');
+      await _pyodide.loadPackage(['numpy','matplotlib']);
+      stepLoad('s2','done');
+
+      stepLoad('s3','active');
+      const res = await fetch('./nn_calc.py?v=' + Date.now());
+      if (!res.ok) throw new Error('nn_calc.py não encontrado (HTTP ' + res.status + ')');
+      _pyodide.runPython(await res.text());
+      stepLoad('s3','done');
+
+      document.getElementById('loading-card').style.display = 'none';
+      document.getElementById('config-card').style.display  = 'block';
+      document.getElementById('btn-start').addEventListener('click', compute);
+    } catch(e) { showLoadError(e.message); }
+  }
+
+  // ── Compute ────────────────────────────────────────────────────────────────
+  async function compute() {
+    const g = id => document.getElementById(id).value;
+    const params = [
+      g('inp-X'), g('inp-Y'), g('inp-lr'),
+      g('w1-0'), g('w1-1'),
+      g('w2-00'), g('w2-01'), g('w2-10'), g('w2-11'),
+      g('w3-0'), g('w3-1'),
+      g('inp-ep')
+    ];
+
+    document.getElementById('config-card').style.display    = 'none';
+    document.getElementById('computing-card').style.display = 'block';
+    await new Promise(r => setTimeout(r, 60));
+
+    try {
+      const json_str = _pyodide.runPython(
+        `nn_run_all(${params.map(p => '"'+p+'"').join(',')})`
+      ).toString();
+
+      const data = JSON.parse(json_str);
+      if (!data.ok) throw new Error(data.error + '\n' + (data.tb || ''));
+
+      _steps = data.steps;
+      _cur   = 0;
+
+      document.getElementById('computing-card').style.display = 'none';
+      document.getElementById('step-card').style.display      = 'block';
+      document.getElementById('tot-steps').textContent = _steps.length;
+
+      buildDots();
+      renderStep(_cur);
+
+    } catch(e) {
+      document.getElementById('computing-card').style.display = 'none';
+      document.getElementById('config-card').style.display    = 'block';
+      alert('Erro ao calcular:\n' + e.message);
+    }
+  }
+
+  // ── Navigation ─────────────────────────────────────────────────────────────
+  function navigate(dir) {
+    _cur = Math.max(0, Math.min(_steps.length - 1, _cur + dir));
+    renderStep(_cur);
+  }
+
+  function goTo(n) { _cur = n; renderStep(_cur); }
+
+  function resetToConfig() {
+    document.getElementById('step-card').style.display   = 'none';
+    document.getElementById('config-card').style.display = 'block';
+    _steps = []; _cur = 0;
+  }
+
+  // ── Dots ───────────────────────────────────────────────────────────────────
+  function buildDots() {
+    const container = document.getElementById('step-dots');
+    container.innerHTML = '';
+    _steps.forEach((_, i) => {
+      const d = document.createElement('div');
+      d.className = 'step-dot';
+      d.title = _steps[i].title;
+      d.onclick = () => goTo(i);
+      container.appendChild(d);
+    });
+  }
+
+  function updateDots() {
+    document.querySelectorAll('.step-dot').forEach((d, i) => {
+      d.className = 'step-dot' + (i === _cur ? ' active' : i < _cur ? ' visited' : '');
+    });
+  }
+
+  // ── Render ─────────────────────────────────────────────────────────────────
+  function renderStep(n) {
+    const step = _steps[n];
+    document.getElementById('cur-step').textContent  = n + 1;
+    document.getElementById('step-title').textContent = step.title;
+    document.getElementById('btn-prev').disabled = (n === 0);
+    document.getElementById('btn-next').disabled = (n === _steps.length - 1);
+    document.getElementById('btn-next').textContent = (n === _steps.length - 1) ? '✓ Concluído' : 'Próximo →';
+    updateDots();
+
+    const content = document.getElementById('step-content');
+    content.innerHTML = '';
+
+    for (const sec of step.sections) {
+      let el;
+      switch(sec.type) {
+
+        case 'title':
+          el = document.createElement('h2');
+          el.className = 'sec-title';
+          el.textContent = sec.content;
+          break;
+
+        case 'subtitle':
+          el = document.createElement('div');
+          el.className = 'sec-subtitle';
+          el.textContent = sec.content;
+          break;
+
+        case 'text':
+          el = document.createElement('p');
+          el.className = 'sec-text';
+          el.textContent = sec.content;
+          break;
+
+        case 'math':
+          el = document.createElement('div');
+          el.className = 'sec-math';
+          try {
+            katex.render(sec.content, el, {displayMode: true, throwOnError: false, strict: false});
+          } catch(e) {
+            el.textContent = sec.content;
+            el.style.color = 'var(--muted)';
+          }
+          break;
+
+        case 'img':
+          el = document.createElement('div');
+          el.className = 'sec-img';
+          const img = document.createElement('img');
+          img.src = sec.content;
+          img.loading = 'lazy';
+          el.appendChild(img);
+          break;
+
+        case 'highlight':
+          el = document.createElement('div');
+          el.className = 'sec-highlight ' + (sec.variant || 'teal');
+          el.textContent = sec.content;
+          break;
+
+        case 'table':
+          el = document.createElement('div');
+          el.className = 'sec-table';
+          const tbl = document.createElement('table');
+          const thead = tbl.createTHead();
+          const hr = thead.insertRow();
+          for (const h of sec.headers) {
+            const th = document.createElement('th');
+            th.textContent = h;
+            hr.appendChild(th);
+          }
+          const tbody = tbl.createTBody();
+          for (const row of sec.rows) {
+            const tr = tbody.insertRow();
+            for (const cell of row) {
+              const td = tr.insertCell();
+              td.textContent = cell;
+            }
+          }
+          el.appendChild(tbl);
+          break;
+
+        default:
+          continue;
+      }
+      content.appendChild(el);
+    }
+
+    // Scroll step card into view smoothly
+    document.getElementById('step-card').scrollIntoView({behavior:'smooth', block:'start'});
+  }
+
+  // ── Bootstrap ──────────────────────────────────────────────────────────────
+  window.addEventListener('load', () => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/pyodide/v0.29.3/full/pyodide.js';
+    s.onload  = () => init();
+    s.onerror = () => showLoadError('Não foi possível baixar o Pyodide.');
+    document.head.appendChild(s);
+  });
+</script>
+</body>
+</html>
