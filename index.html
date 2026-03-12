@@ -31,37 +31,48 @@ layout: null
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
-      padding: 40px 20px 60px;
+      padding: 40px 20px 80px;
       background-image:
         radial-gradient(ellipse 80% 40% at 50% -10%, rgba(0,212,170,0.07) 0%, transparent 70%),
         radial-gradient(ellipse 50% 30% at 90% 90%, rgba(255,107,53,0.05) 0%, transparent 60%);
     }
+
+    /* ── Layout ── */
     .wrapper { max-width: 860px; margin: 0 auto; }
 
-    /* Header */
+    /* ── Header ── */
     header { margin-bottom: 36px; border-left: 3px solid var(--teal); padding-left: 18px; }
     header .label { font-family: var(--mono); font-size: 0.7rem; color: var(--teal); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 8px; }
     header h1 { font-family: var(--mono); font-size: clamp(1.3rem, 4vw, 1.9rem); font-weight: 700; line-height: 1.2; color: #fff; }
     header p { margin-top: 10px; color: var(--muted); font-size: 0.92rem; font-weight: 300; max-width: 580px; line-height: 1.6; }
     header .updated { margin-top: 14px; font-size: 0.72rem; color: var(--teal-dim); font-family: var(--mono); }
 
-    /* Cards */
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px 32px; margin-bottom: 20px; }
+    /* ── Cards ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 32px;
+      margin-bottom: 20px;
+      /* critical: prevent internal content from escaping */
+      min-width: 0;
+      overflow: hidden;
+    }
     .card-title { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--teal); margin-bottom: 20px; }
 
-    /* Loading */
+    /* ── Loading ── */
     #loading-card { text-align: center; }
     .spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--teal); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 20px; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    #step-list { list-style: none; text-align: left; max-width: 340px; margin: 20px auto 0; }
-    #step-list li { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); padding: 6px 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; transition: color 0.3s; }
-    #step-list li .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); flex-shrink: 0; transition: background 0.3s; }
-    #step-list li.done { color: var(--teal); } #step-list li.done .dot { background: var(--teal); }
-    #step-list li.active { color: var(--text); } #step-list li.active .dot { background: var(--orange); animation: pulse 1s infinite; }
+    #pyodide-steps { list-style: none; text-align: left; max-width: 340px; margin: 20px auto 0; }
+    #pyodide-steps li { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); padding: 6px 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; transition: color 0.3s; }
+    #pyodide-steps li .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); flex-shrink: 0; transition: background 0.3s; }
+    #pyodide-steps li.done { color: var(--teal); } #pyodide-steps li.done .dot { background: var(--teal); }
+    #pyodide-steps li.active { color: var(--text); } #pyodide-steps li.active .dot { background: var(--orange); animation: pulse 1s infinite; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
     #load-error { display:none; margin-top:16px; padding:12px 16px; background:rgba(255,107,53,0.1); border:1px solid rgba(255,107,53,0.4); border-radius:8px; font-family:var(--mono); font-size:0.8rem; color:var(--orange); text-align:left; }
 
-    /* Config card */
+    /* ── Config card ── */
     #config-card { display: none; }
     .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
     @media(max-width:580px){ .config-grid{ grid-template-columns:1fr; } }
@@ -75,56 +86,155 @@ layout: null
     .w2-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
     .section-label { font-family:var(--mono); font-size:0.68rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--teal-dim); margin-bottom:12px; margin-top:4px; }
 
-    /* Buttons */
-    .btn-primary { width:100%; padding:15px; background:var(--teal); color:var(--bg); border:none; border-radius:10px; font-family:var(--mono); font-size:0.88rem; font-weight:700; letter-spacing:0.08em; cursor:pointer; transition:background 0.2s,transform 0.15s,box-shadow 0.2s; }
+    /* ── Buttons ── */
+    .btn-primary { width:100%; padding:15px; background:var(--teal); color:var(--bg); border:none; border-radius:10px; font-family:var(--mono); font-size:0.88rem; font-weight:700; letter-spacing:0.08em; cursor:pointer; transition:background 0.2s,transform 0.15s,box-shadow 0.2s; margin-top:24px; }
     .btn-primary:hover:not(:disabled) { background:#00f0c2; box-shadow:0 0 20px rgba(0,212,170,0.35); transform:translateY(-1px); }
     .btn-primary:disabled { background:var(--teal-dim); cursor:not-allowed; transform:none; }
 
-    /* Computing overlay */
+    /* ── Computing ── */
     #computing-card { display:none; text-align:center; }
     .computing-spinner { width:48px; height:48px; border:3px solid var(--border); border-top-color:var(--orange); border-radius:50%; animation:spin 0.7s linear infinite; margin:0 auto 20px; }
     #computing-card p { color:var(--muted); font-family:var(--mono); font-size:0.82rem; }
 
-    /* Step card */
-    #step-card { display:none; }
+    /* ── Step cards (acumulados) ── */
+    #steps-container { display: none; }
 
-    /* Step nav */
-    .step-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
-    .step-nav .step-indicator { font-family:var(--mono); font-size:0.75rem; color:var(--muted); }
-    .step-nav .step-indicator span { color:var(--teal); }
-    .step-title { font-family:var(--mono); font-size:1.1rem; color:#fff; margin-bottom:20px; padding-bottom:14px; border-bottom:1px solid var(--border); }
-    .step-dots { display:flex; gap:6px; margin-top:4px; }
-    .step-dot { width:7px; height:7px; border-radius:50%; background:var(--border); cursor:pointer; transition:background 0.2s; }
-    .step-dot.active { background:var(--teal); }
-    .step-dot.visited { background:var(--teal-dim); }
+    .step-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 32px;
+      margin-bottom: 20px;
+      min-width: 0;
+      overflow: hidden;
+      animation: slideIn 0.4s ease forwards;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
 
-    .btn-nav { padding:10px 22px; background:none; border:1px solid var(--border); border-radius:8px; color:var(--muted); font-family:var(--mono); font-size:0.8rem; cursor:pointer; transition:all 0.2s; }
-    .btn-nav:hover:not(:disabled) { border-color:var(--teal); color:var(--teal); }
-    .btn-nav:disabled { opacity:0.3; cursor:not-allowed; }
-    .btn-nav.next { background:var(--teal); border-color:var(--teal); color:var(--bg); font-weight:700; }
-    .btn-nav.next:hover:not(:disabled) { background:#00f0c2; }
+    /* número do passo */
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .step-badge {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--bg);
+      background: var(--teal);
+      border-radius: 20px;
+      padding: 3px 10px;
+      letter-spacing: 0.08em;
+      flex-shrink: 0;
+    }
+    .step-title-text {
+      font-family: var(--mono);
+      font-size: 1rem;
+      color: #fff;
+      font-weight: 700;
+    }
 
-    /* Step sections */
+    /* ── Seções de conteúdo ── */
     .step-content > * + * { margin-top: 16px; }
-
-    .sec-title { font-family:var(--mono); font-size:1rem; color:#fff; font-weight:700; margin-top:24px !important; }
     .sec-subtitle { font-family:var(--mono); font-size:0.82rem; color:var(--teal); margin-top:20px !important; letter-spacing:0.06em; border-left:2px solid var(--teal); padding-left:10px; }
     .sec-text { color:var(--muted); font-size:0.9rem; line-height:1.7; }
-    .sec-math { overflow-x:auto; padding:14px 0; }
-    .sec-img img { width:100%; border-radius:10px; border:1px solid var(--border); }
-
+    .sec-math { overflow-x:auto; padding:14px 0; max-width:100%; }
+    .sec-img { max-width: 100%; }
+    .sec-img img { width:100%; max-width:100%; height:auto; border-radius:10px; border:1px solid var(--border); display:block; }
     .sec-highlight { padding:14px 18px; border-radius:10px; font-size:0.88rem; line-height:1.6; white-space:pre-line; }
     .sec-highlight.teal { background:rgba(0,212,170,0.06); border:1px solid rgba(0,212,170,0.22); color:var(--teal); }
     .sec-highlight.orange { background:rgba(255,107,53,0.06); border:1px solid rgba(255,107,53,0.22); color:var(--orange); }
 
-    /* Table */
-    .sec-table { overflow-x:auto; }
+    /* ── Table ── */
+    .sec-table { overflow-x:auto; max-width:100%; }
     .sec-table table { width:100%; border-collapse:collapse; font-family:var(--mono); font-size:0.76rem; }
     .sec-table th { text-align:left; padding:8px 14px; color:var(--muted); border-bottom:1px solid var(--border); font-weight:400; letter-spacing:0.08em; }
     .sec-table td { padding:9px 14px; border-bottom:1px solid rgba(30,45,69,0.5); color:var(--text); }
     .sec-table tr:hover td { background:rgba(255,255,255,0.02); }
 
-    /* Reset link */
+    /* ── "Próximo" no rodapé de cada step card ── */
+    .step-footer {
+      margin-top: 24px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+    .btn-next-step {
+      padding: 12px 28px;
+      background: var(--teal);
+      color: var(--bg);
+      border: none;
+      border-radius: 8px;
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    .btn-next-step:hover { background: #00f0c2; box-shadow: 0 0 16px rgba(0,212,170,0.3); transform: translateY(-1px); }
+    .btn-done {
+      padding: 12px 28px;
+      background: none;
+      color: var(--teal);
+      border: 1px solid var(--teal);
+      border-radius: 8px;
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-done:hover { background: rgba(0,212,170,0.08); }
+
+    /* ── Barra de progresso fixa no topo ── */
+    #progress-bar-wrap {
+      display: none;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 20px;
+      margin: 0 -20px 20px;
+    }
+    .progress-inner {
+      max-width: 860px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .progress-track {
+      flex: 1;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--teal);
+      border-radius: 2px;
+      transition: width 0.4s ease;
+    }
+    .progress-label {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .progress-label span { color: var(--teal); }
+
+    /* ── Reset ── */
     .reset-link { font-family:var(--mono); font-size:0.72rem; color:var(--muted); background:none; border:none; cursor:pointer; text-decoration:underline; padding:0; }
     .reset-link:hover { color:var(--orange); }
   </style>
@@ -135,14 +245,23 @@ layout: null
   <header>
     <div class="label">Aprendizado de Máquina · Demonstração Interativa</div>
     <h1>Rede Neural Simples<br>Passo a Passo</h1>
-    <p>Configure os pesos e hiperparâmetros, depois avance pelas etapas para ver as contas do forward pass, backpropagation e o treinamento completo.</p>
+    <p>Configure os pesos e hiperparâmetros, depois avance pelas etapas — cada clique em "Próximo" revela o próximo passo acumulado abaixo.</p>
     <p class="updated">última atualização: {{ site.time | date: "%d/%m/%Y" }}</p>
   </header>
+
+  <!-- Barra de progresso sticky -->
+  <div id="progress-bar-wrap">
+    <div class="progress-inner">
+      <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      <div class="progress-label">Passo <span id="prog-cur">0</span> de <span id="prog-tot">0</span></div>
+      <button class="reset-link" onclick="resetAll()">← reconfigurar</button>
+    </div>
+  </div>
 
   <!-- Loading Pyodide -->
   <div class="card" id="loading-card">
     <div class="spinner"></div>
-    <ul id="step-list">
+    <ul id="pyodide-steps">
       <li id="s1"><span class="dot"></span> Iniciando WebAssembly (Pyodide)</li>
       <li id="s2"><span class="dot"></span> Carregando NumPy + Matplotlib</li>
       <li id="s3"><span class="dot"></span> Lendo modelo Python</li>
@@ -153,8 +272,8 @@ layout: null
   <!-- Config -->
   <div class="card" id="config-card">
     <div class="card-title">// Configurar a Rede</div>
-
     <div class="config-grid">
+
       <div>
         <div class="section-label">Dados e Hiperparâmetros</div>
         <div class="input-group" style="margin-bottom:16px">
@@ -189,7 +308,6 @@ layout: null
           <div><label style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:4px">W1[1]</label>
             <input type="number" id="w1-1" value="-0.2" step="0.1"></div>
         </div>
-
         <p class="hint" style="margin-bottom:12px">W2: Oculta A → Oculta B  (2×2)</p>
         <div class="w2-grid" style="margin-bottom:14px">
           <div><label style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:4px">W2[0,0]</label>
@@ -201,7 +319,6 @@ layout: null
           <div><label style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:4px">W2[1,1]</label>
             <input type="number" id="w2-11" value="0.5" step="0.1"></div>
         </div>
-
         <p class="hint" style="margin-bottom:12px">W3: Oculta B → Saída</p>
         <div class="w2-grid">
           <div><label style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:4px">W3[0]</label>
@@ -210,102 +327,56 @@ layout: null
             <input type="number" id="w3-1" value="-0.1" step="0.1"></div>
         </div>
       </div>
-    </div>
 
-
-    <div style="margin-top:28px">
-      <button class="btn-primary" id="btn-start">▶ CALCULAR TODOS OS PASSOS</button>
     </div>
-
-    <div id="history-section" style="display: none; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border);">
-      <div class="section-label" style="color: var(--orange);">Histórico de Execuções</div>
-      <div class="sec-table">
-        <table style="width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 0.76rem; text-align: left;">
-          <thead>
-            <tr style="color: var(--muted); border-bottom: 1px solid var(--border);">
-              <th style="padding: 8px;">Entrada</th>
-              <th style="padding: 8px;">Alvo</th>
-              <th style="padding: 8px;">LR</th>
-              <th style="padding: 8px;">Épocas</th>
-              <th style="padding: 8px; color: var(--teal);">Predição ŷ</th>
-              <th style="padding: 8px; color: var(--orange);">Erro MSE</th>
-            </tr>
-          </thead>
-          <tbody id="history-body">
-            </tbody>
-        </table>
-      </div>
-      <button class="reset-link" onclick="clearHistory()" style="margin-top: 12px; float: right;">limpar histórico</button>
-      <div style="clear: both;"></div>
-    </div>
-  </div>
-    
+    <button class="btn-primary" id="btn-start">▶ CALCULAR TODOS OS PASSOS</button>
   </div>
 
   <!-- Computing -->
   <div class="card" id="computing-card">
     <div class="computing-spinner"></div>
     <p>Executando forward pass, backpropagation e gerando todos os gráficos…<br>
-       <span style="color:var(--muted);font-size:0.75rem">(pode levar alguns segundos)</span></p>
+    <span style="color:var(--muted);font-size:0.72rem">(pode levar alguns segundos)</span></p>
   </div>
 
-  <!-- Step navigator -->
-  <div class="card" id="step-card">
-    <div class="step-nav">
-      <div>
-        <div class="step-indicator">Passo <span id="cur-step">1</span> de <span id="tot-steps">8</span></div>
-        <div class="step-dots" id="step-dots"></div>
-      </div>
-      <button class="reset-link" onclick="resetToConfig()">← reconfigurar</button>
-    </div>
+  <!-- Steps acumulados aqui -->
+  <div id="steps-container"></div>
 
-    <div class="step-title" id="step-title"></div>
-    <div class="step-content" id="step-content"></div>
-
-    <div style="display:flex;gap:12px;margin-top:28px;padding-top:20px;border-top:1px solid var(--border); align-items: center; flex-wrap: wrap;">
-      <button class="btn-nav" id="btn-prev" onclick="navigate(-1)">← Anterior</button>
-      <button class="btn-nav next" id="btn-next" onclick="navigate(+1)">Próximo →</button>
-      <div style="flex-grow: 1;"></div>
-      <button class="btn-nav" id="btn-skip" onclick="goTo(_steps.length - 1)" style="border-color: var(--orange); color: var(--orange);">⏭ Pular para o Final</button>
-    </div>
-  </div>
-
-</div>
+</div><!-- .wrapper -->
 
 <script>
-  let _pyodide = null;
-  let _steps   = [];
-  let _cur     = 0;
-  let _history = [];
+  let _pyodide  = null;
+  let _steps    = [];
+  let _revealed = 0;  // quantos já foram mostrados
 
-  // ── Loading helpers ────────────────────────────────────────────────────────
-  function stepLoad(id, state) { document.getElementById(id).className = state; }
+  // ── Loading helpers ──────────────────────────────────────────────────────
+  function ldStep(id, state) { document.getElementById(id).className = state; }
   function showLoadError(msg) {
     const b = document.getElementById('load-error');
     b.style.display = 'block'; b.textContent = '✗ ' + msg;
     document.querySelector('.spinner').style.display = 'none';
   }
 
-  // ── Init ───────────────────────────────────────────────────────────────────
+  // ── Init ─────────────────────────────────────────────────────────────────
   async function init() {
     if (typeof loadPyodide === 'undefined') {
       showLoadError('Falha ao carregar o Pyodide. Verifique a conexão e recarregue.');
       return;
     }
     try {
-      stepLoad('s1','active');
+      ldStep('s1','active');
       _pyodide = await loadPyodide();
-      stepLoad('s1','done');
+      ldStep('s1','done');
 
-      stepLoad('s2','active');
+      ldStep('s2','active');
       await _pyodide.loadPackage(['numpy','matplotlib']);
-      stepLoad('s2','done');
+      ldStep('s2','done');
 
-      stepLoad('s3','active');
+      ldStep('s3','active');
       const res = await fetch('./nn_calc.py?v=' + Date.now());
       if (!res.ok) throw new Error('nn_calc.py não encontrado (HTTP ' + res.status + ')');
       _pyodide.runPython(await res.text());
-      stepLoad('s3','done');
+      ldStep('s3','done');
 
       document.getElementById('loading-card').style.display = 'none';
       document.getElementById('config-card').style.display  = 'block';
@@ -313,7 +384,7 @@ layout: null
     } catch(e) { showLoadError(e.message); }
   }
 
-  // ── Compute ────────────────────────────────────────────────────────────────
+  // ── Compute ───────────────────────────────────────────────────────────────
   async function compute() {
     const g = id => document.getElementById(id).value;
     const params = [
@@ -326,30 +397,31 @@ layout: null
 
     document.getElementById('config-card').style.display    = 'none';
     document.getElementById('computing-card').style.display = 'block';
+    document.getElementById('steps-container').innerHTML    = '';
+    document.getElementById('steps-container').style.display = 'none';
+    document.getElementById('progress-bar-wrap').style.display = 'none';
     await new Promise(r => setTimeout(r, 60));
 
     try {
       const json_str = _pyodide.runPython(
         `nn_run_all(${params.map(p => '"'+p+'"').join(',')})`
       ).toString();
-
       const data = JSON.parse(json_str);
       if (!data.ok) throw new Error(data.error + '\n' + (data.tb || ''));
 
-      _steps = data.steps;
-      _cur   = 0;
-
-      if (data.summary) {
-        _history.push(data.summary);
-        updateHistoryUI();
-      }
+      _steps    = data.steps;
+      _revealed = 0;
 
       document.getElementById('computing-card').style.display = 'none';
-      document.getElementById('step-card').style.display      = 'block';
-      document.getElementById('tot-steps').textContent = _steps.length;
+      document.getElementById('config-card').style.display    = 'block';
+      document.getElementById('steps-container').style.display = 'block';
 
-      buildDots();
-      renderStep(_cur);
+      // barra de progresso
+      document.getElementById('prog-tot').textContent = _steps.length;
+      document.getElementById('progress-bar-wrap').style.display = 'block';
+
+      // Revela o primeiro passo
+      revealNext();
 
     } catch(e) {
       document.getElementById('computing-card').style.display = 'none';
@@ -358,171 +430,154 @@ layout: null
     }
   }
 
-  // ── Navigation ─────────────────────────────────────────────────────────────
-  function navigate(dir) {
-    _cur = Math.max(0, Math.min(_steps.length - 1, _cur + dir));
-    renderStep(_cur);
-  }
-
-  function goTo(n) { _cur = n; renderStep(_cur); }
-
-  function resetToConfig() {
-    document.getElementById('step-card').style.display   = 'none';
-    document.getElementById('config-card').style.display = 'block';
-    _steps = []; _cur = 0;
-  }
-
-  // ── History ────────────────────────────────────────────────────────────────
-  function updateHistoryUI() {
-    const section = document.getElementById('history-section');
-    const tbody = document.getElementById('history-body');
-    
-    if (_history.length === 0) {
-      section.style.display = 'none';
-      return;
-    }
-    
-    section.style.display = 'block';
-    tbody.innerHTML = '';
-    
-    [..._history].reverse().forEach((run) => {
-      const tr = document.createElement('tr');
-      tr.style.borderBottom = '1px solid rgba(30,45,69,0.5)';
-      tr.innerHTML = `
-        <td style="padding: 8px;">${run.X.toFixed(1)}</td>
-        <td style="padding: 8px;">${run.Y.toFixed(1)}</td>
-        <td style="padding: 8px;">${run.lr.toFixed(2)}</td>
-        <td style="padding: 8px;">${run.epochs}</td>
-        <td style="padding: 8px; color: var(--teal); font-weight: bold;">${run.yp_f.toFixed(5)}</td>
-        <td style="padding: 8px; color: var(--text);">${run.err_f.toFixed(6)}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
-
-  function clearHistory() {
-    _history = [];
-    updateHistoryUI();
-  }
-  
-  // ── Dots ───────────────────────────────────────────────────────────────────
-  function buildDots() {
-    const container = document.getElementById('step-dots');
-    container.innerHTML = '';
-    _steps.forEach((_, i) => {
-      const d = document.createElement('div');
-      d.className = 'step-dot';
-      d.title = _steps[i].title;
-      d.onclick = () => goTo(i);
-      container.appendChild(d);
-    });
-  }
-
-  function updateDots() {
-    document.querySelectorAll('.step-dot').forEach((d, i) => {
-      d.className = 'step-dot' + (i === _cur ? ' active' : i < _cur ? ' visited' : '');
-    });
-  }
-
-  // ── Render ─────────────────────────────────────────────────────────────────
-function renderStep(n) {
+  // ── Revela o próximo passo acumulado ─────────────────────────────────────
+  function revealNext() {
+    if (_revealed >= _steps.length) return;
+    const n    = _revealed;
     const step = _steps[n];
-    document.getElementById('cur-step').textContent  = n + 1;
-    document.getElementById('step-title').textContent = step.title;
-    document.getElementById('btn-prev').disabled = (n === 0);
-    document.getElementById('btn-next').disabled = (n === _steps.length - 1);
-    document.getElementById('btn-next').textContent = (n === _steps.length - 1) ? '✓ Concluído' : 'Próximo →';        
-    document.getElementById('btn-skip').style.display = (n === _steps.length - 1) ? 'none' : 'block';
-    
-    updateDots();
-  
-    const content = document.getElementById('step-content');
-    content.innerHTML = '';
+    _revealed++;
 
+    // Atualiza barra de progresso
+    const pct = Math.round((_revealed / _steps.length) * 100);
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('prog-cur').textContent = _revealed;
+
+    // Monta card do passo
+    const card = document.createElement('div');
+    card.className = 'step-card';
+    card.id = 'step-' + n;
+
+    // Cabeçalho
+    const header = document.createElement('div');
+    header.className = 'step-header';
+    header.innerHTML = `<span class="step-badge">Passo ${n+1} / ${_steps.length}</span>
+                        <span class="step-title-text">${step.title}</span>`;
+    card.appendChild(header);
+
+    // Conteúdo
+    const content = document.createElement('div');
+    content.className = 'step-content';
     for (const sec of step.sections) {
-      let el;
-      switch(sec.type) {
-
-        case 'title':
-          el = document.createElement('h2');
-          el.className = 'sec-title';
-          el.textContent = sec.content;
-          break;
-
-        case 'subtitle':
-          el = document.createElement('div');
-          el.className = 'sec-subtitle';
-          el.textContent = sec.content;
-          break;
-
-        case 'text':
-          el = document.createElement('p');
-          el.className = 'sec-text';
-          el.textContent = sec.content;
-          break;
-
-        case 'math':
-          el = document.createElement('div');
-          el.className = 'sec-math';
-          try {
-            katex.render(sec.content, el, {displayMode: true, throwOnError: false, strict: false});
-          } catch(e) {
-            el.textContent = sec.content;
-            el.style.color = 'var(--muted)';
-          }
-          break;
-
-        case 'img':
-          el = document.createElement('div');
-          el.className = 'sec-img';
-          const img = document.createElement('img');
-          img.src = sec.content;
-          img.loading = 'lazy';
-          el.appendChild(img);
-          break;
-
-        case 'highlight':
-          el = document.createElement('div');
-          el.className = 'sec-highlight ' + (sec.variant || 'teal');
-          el.textContent = sec.content;
-          break;
-
-        case 'table':
-          el = document.createElement('div');
-          el.className = 'sec-table';
-          const tbl = document.createElement('table');
-          const thead = tbl.createTHead();
-          const hr = thead.insertRow();
-          for (const h of sec.headers) {
-            const th = document.createElement('th');
-            th.textContent = h;
-            hr.appendChild(th);
-          }
-          const tbody = tbl.createTBody();
-          for (const row of sec.rows) {
-            const tr = tbody.insertRow();
-            for (const cell of row) {
-              const td = tr.insertCell();
-              td.textContent = cell;
-            }
-          }
-          el.appendChild(tbl);
-          break;
-
-        default:
-          continue;
-      }
-      content.appendChild(el);
+      const el = buildSection(sec);
+      if (el) content.appendChild(el);
     }
+    card.appendChild(content);
 
-    // Scroll step card into view smoothly
-    document.getElementById('step-card').scrollIntoView({behavior:'smooth', block:'start'});
+    // Rodapé com botão
+    const footer = document.createElement('div');
+    footer.className = 'step-footer';
+    if (_revealed < _steps.length) {
+      const btn = document.createElement('button');
+      btn.className = 'btn-next-step';
+      btn.textContent = 'Próximo →';
+      btn.onclick = () => {
+        btn.disabled = true;
+        btn.textContent = '✓';
+        revealNext();
+      };
+      footer.appendChild(btn);
+    } else {
+      // Último passo
+      const btn = document.createElement('button');
+      btn.className = 'btn-done';
+      btn.textContent = '✓ Concluído — reconfigurar';
+      btn.onclick = resetAll;
+      footer.appendChild(btn);
+    }
+    card.appendChild(footer);
+
+    document.getElementById('steps-container').appendChild(card);
+
+    // Scroll suave até o novo card
+    setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
   }
 
-  // ── Bootstrap ──────────────────────────────────────────────────────────────
+  // ── Constrói elemento de uma seção ───────────────────────────────────────
+  function buildSection(sec) {
+    let el;
+    switch(sec.type) {
+
+      case 'subtitle':
+        el = document.createElement('div');
+        el.className = 'sec-subtitle';
+        el.textContent = sec.content;
+        break;
+
+      case 'text':
+        el = document.createElement('p');
+        el.className = 'sec-text';
+        el.textContent = sec.content;
+        break;
+
+      case 'math':
+        el = document.createElement('div');
+        el.className = 'sec-math';
+        try {
+          katex.render(sec.content, el, { displayMode: true, throwOnError: false, strict: false });
+        } catch(e) {
+          el.textContent = sec.content;
+          el.style.color = 'var(--muted)';
+        }
+        break;
+
+      case 'img':
+        el = document.createElement('div');
+        el.className = 'sec-img';
+        const img = document.createElement('img');
+        img.src = sec.content;
+        img.loading = 'lazy';
+        img.style.maxWidth = '100%';
+        el.appendChild(img);
+        break;
+
+      case 'highlight':
+        el = document.createElement('div');
+        el.className = 'sec-highlight ' + (sec.variant || 'teal');
+        el.textContent = sec.content;
+        break;
+
+      case 'table':
+        el = document.createElement('div');
+        el.className = 'sec-table';
+        const tbl = document.createElement('table');
+        const thead = tbl.createTHead();
+        const hr = thead.insertRow();
+        for (const h of sec.headers) {
+          const th = document.createElement('th');
+          th.textContent = h;
+          hr.appendChild(th);
+        }
+        const tbody = tbl.createTBody();
+        for (const row of sec.rows) {
+          const tr = tbody.insertRow();
+          for (const cell of row) {
+            const td = tr.insertCell();
+            td.textContent = cell;
+          }
+        }
+        el.appendChild(tbl);
+        break;
+
+      default:
+        return null;
+    }
+    return el;
+  }
+
+  // ── Reset ─────────────────────────────────────────────────────────────────
+  function resetAll() {
+    _steps = []; _revealed = 0;
+    document.getElementById('steps-container').innerHTML = '';
+    document.getElementById('steps-container').style.display = 'none';
+    document.getElementById('progress-bar-wrap').style.display = 'none';
+    document.getElementById('progress-fill').style.width = '0%';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ── Bootstrap ─────────────────────────────────────────────────────────────
   window.addEventListener('load', () => {
     const s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/pyodide/v0.29.3/full/pyodide.js';
+    s.src = 'https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js';
     s.onload  = () => init();
     s.onerror = () => showLoadError('Não foi possível baixar o Pyodide.');
     document.head.appendChild(s);
