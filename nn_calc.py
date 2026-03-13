@@ -643,7 +643,7 @@ def nn_run_all(X_s,Y_s,lr_s,w1_0,w1_1,w2_00,w2_01,w2_10,w2_11,w3_0,w3_1,epochs_s
              r"X \xrightarrow{W_1} h_A \xrightarrow{W_2} h_B \xrightarrow{W_3} \hat{y}"},
             {"type":"subtitle","content":"Notação usada em todos os passos"},
             {"type":"table","headers":["Símbolo","O que é","Como se calcula"],"rows":[
-                ["z_A","Pré-ativação de Oculta A","z_A = X * W1  (antes de aplicar f)"],
+                ["z_A","Pré-ativação de Oculta A","z_A = X * W1 \\ (antes \\ de \\ aplicar \\ f)"],
                 ["h_A","Ativação de Oculta A",f"h_A = {act_name}(z_A)"],
                 ["z_B","Pré-ativação de Oculta B","z_B = h_A * W2"],
                 ["h_B","Ativação de Oculta B",f"h_B = {act_name}(z_B)"],
@@ -651,11 +651,11 @@ def nn_run_all(X_s,Y_s,lr_s,w1_0,w1_1,w2_00,w2_01,w2_10,w2_11,w3_0,w3_1,epochs_s
                 ["ŷ","Predição final","ŷ = σ(z_Y)  (sigmoide)"],
                 ["E","Erro MSE","E = ½(y − ŷ)²"],
                 ["δ_Y","Delta da saída","(ŷ − y) * σ'(ŷ)"],
-                ["δ_hB","Delta de Oculta B","δ_Y * W3 * f'(z_B)"],
-                ["δ_hA","Delta de Oculta A","δ_hB * W2ᵀ * f'(z_A)"],
+                ["δ_{hB}","Delta de Oculta B","δ_Y * W3 * f'(z_B)"],
+                ["δ_{hA}","Delta de Oculta A","δ_{hB} * W2ᵀ * f'(z_A)"],
                 ["∇W3","Gradiente de W3","δ_Y * h_B"],
-                ["∇W2","Gradiente de W2","h_A ⊗ δ_hB  (produto externo)"],
-                ["∇W1","Gradiente de W1","δ_hA * X"],
+                ["∇W2","Gradiente de W2","h_A ⊗ δ_{hB}  (produto \\ externo)"],
+                ["∇W1","Gradiente de W1","δ_{hA} * X"],
             ]},
             {"type":"subtitle","content":"Por que os pesos iniciais importam?"},
             {"type":"text","content":
@@ -838,10 +838,10 @@ def nn_run_all(X_s,Y_s,lr_s,w1_0,w1_1,w2_00,w2_01,w2_10,w2_11,w3_0,w3_1,epochs_s
                 ["zA2","Pré-ativação de hA2 (antes de f)",  f"{zA[1]:.4f}"],
                 ["hA1","Ativação de Oculta A, neurônio 1",  f"{hA[0]:.4f}"],
                 ["hA2","Ativação de Oculta A, neurônio 2",  f"{hA[1]:.4f}"],
-                ["delta_Y","Sinal de erro ponderado na saída", f"{dY:.6f}"],
-                ["nablaW", "Gradiente de W = quanto E muda ao variar W","—"],
-                ["delta_hB","Erro propagado para Oculta B", f"[{dhB[0]:.6f}, {dhB[1]:.6f}]"],
-                ["delta_hA","Erro propagado para Oculta A", f"[{dhA[0]:.6f}, {dhA[1]:.6f}]"],
+                ["δ_Y","Sinal de erro ponderado na saída", f"{dY:.6f}"],
+                ["∇W", "Gradiente de W = quanto E muda ao variar W","—"],
+                ["δ_{hB}","Erro propagado para Oculta B", f"[{dhB[0]:.6f}, {dhB[1]:.6f}]"],
+                ["δ_{hA}","Erro propagado para Oculta A", f"[{dhA[0]:.6f}, {dhA[1]:.6f}]"],
              ]},
             {"type":"highlight","content":
              f"Regra geral de atualização: W ← W − lr × ∇W    "
@@ -858,7 +858,7 @@ def nn_run_all(X_s,Y_s,lr_s,w1_0,w1_1,w2_00,w2_01,w2_10,w2_11,w3_0,w3_1,epochs_s
                 f"Época 1 — Backpropagation  (nós coloridos por magnitude de δ)",
                 grad_mags=grad_mags_ep1)},
             # ── ① δ_Y ─────────────────────────────────────────────────────────
-            {"type":"subtitle","content":"① delta_Y — sinal de erro na saída"},
+            {"type":"subtitle","content":"① δ_Y — sinal de erro na saída"},
             {"type":"text","content":
              "A saída usa sigmoide, cuja derivada a partir da própria saída ŷ é ŷ(1−ŷ):"},
             {"type":"math","content":
@@ -867,7 +867,7 @@ def nn_run_all(X_s,Y_s,lr_s,w1_0,w1_1,w2_00,w2_01,w2_10,w2_11,w3_0,w3_1,epochs_s
              r"\delta_Y=(\hat{y}-y)\cdot\sigma'(\hat{y})="
              +f"({yp:.4f}-{Y})\\times{dsY:.4f}={dY:.6f}"},
             # ── ② f'(z_B), ∇W3, δ_hB ─────────────────────────────────────────
-            {"type":"subtitle","content":f"② nablaW3 e delta_hB  —  derivada de {act_name} aplicada a z_B"},
+            {"type":"subtitle","content":f"② ∇W3 e δ_hB  —  derivada de {act_name} aplicada a z_B"},
             {"type":"text","content":
              f"Precisamos de f'(z_B) para propagar o erro pela camada Oculta B. "
              f"Usamos os z_B calculados no forward pass: z_B1={zB[0]:.4f}, z_B2={zB[1]:.4f}."},
