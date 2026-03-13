@@ -767,27 +767,7 @@ def nn_run_all(X_s,Y_s,lr_s,w1_0,w1_1,w2_00,w2_01,w2_10,w2_11,w3_0,w3_1,epochs_s
              "variant":"orange"},
         ]})
 
-        # ── Passo 4: Conceito de Loss Landscape (antes do backprop) ──────────
-        landscape_placeholder_idx=len(steps)
-        steps.append({
-            "title":"Por que o Backpropagation Funciona — Intuicao Geometrica",
-            "sections":[
-                {"type":"text","content":
-                 "Antes de ver as contas, vale entender o que estamos tentando fazer. "
-                 "Cada configuração de pesos gera um erro E. "
-                 "Pense nos pesos como coordenadas e no erro como a altitude de uma superfície: "
-                 "queremos descer até o vale de menor altitude."},
-                {"type":"img","content":plot_loss_concept()},
-                {"type":"text","content":
-                 "O backpropagation calcula a inclinação (gradiente) nessa superfície em cada ponto. "
-                 "Mover os pesos na direção oposta ao gradiente garante que descemos. "
-                 "A taxa de aprendizado (lr) controla o tamanho de cada passo."},
-                {"type":"highlight","content":
-                 "No passo final você verá o mapa real de erro com a trajetória exata que o "
-                 "treinamento percorreu. Aqui é apenas a intuição geométrica.",
-                 "variant":"teal"},
-            ]
-        })
+
 
         # ── Backpropagation Época 1 ───────────────────────────────────────────
         W1b=W1.copy(); W2b=W2.copy(); W3b=W3.copy()
@@ -1071,14 +1051,30 @@ def nn_run_all(X_s,Y_s,lr_s,w1_0,w1_1,w2_00,w2_01,w2_10,w2_11,w3_0,w3_1,epochs_s
         # ── Injeta no Estado Final: landscape + variação total dos pesos ─────
         estado_final_secs=steps[-1]['sections']
         estado_final_secs.append({
-            "type":"subtitle","content":"Revisitando o Loss Landscape — onde o treinamento chegou"})
+            "type":"subtitle","content":"Loss Landscape: A Superfície do Erro — onde o treinamento chegou"})
         estado_final_secs.append({
             "type":"text","content":
-            "Onde estamos no espaço do erro?" 
+            "Onde estamos no espaço do erro? " 
             "Este mapa mostra como o MSE varia conforme mudamos apenas W3[0] e W3[1], mantendo W1 e W2 fixos nos valores iniciais. "
             "A estrela teal mostra onde os pesos de W3 estão após todas as épocas — "
             "confirmando que o algoritmo de fato desceu em direção ao vale."})
         estado_final_secs.append({"type":"img","content":landscape_img})
+        estado_final_secs.append({"type":"text","content":
+                 "Cada ponto no mapa é uma configuração diferente de W3. "
+                 "Cores escuras (verde) = erro baixo (vales, mínimos). "
+                 "Cores claras (vermelho) = erro alto (picos, planaltos). "
+                 "A linha tracejada branca é a trajetória percorrida durante o treinamento — "
+                 "o algoritmo navega essa superfície descendo sempre na direção de maior declive (gradiente negativo)."},
+                {"type":"highlight","content":
+                 "⚠ Este é um corte 2D de um espaço 8-dimensional (8 pesos). "
+                 "Na realidade, W1 e W2 também se movem simultaneamente, "
+                 "mas este slice já revela o conceito: existem vales, planaltos, e às vezes mínimos locais.",
+                 "variant":"orange"},
+                {"type":"text","content":
+                 "Por que o landscape tem essa forma? A saída ŷ = σ(hB · W3) é uma função sigmoid — "
+                 "suave e limitada em (0,1). O erro E = ½(y−ŷ)² é então uma superfície convexa "
+                 "em relação a W3 (se W1 e W2 fossem fixos). "
+                 "Isso significa que, para W3 isolado, existe um único mínimo global."})
         estado_final_secs.append({
             "type":"subtitle",
             "content":f"Variação Total dos Pesos — Início → Final  ({epochs} épocas)"})
