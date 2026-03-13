@@ -57,6 +57,115 @@ def _b64(fig):
     s='data:image/png;base64,'+base64.b64encode(buf.getvalue()).decode()
     plt.close(fig); return s
 
+def plot_network_arch(act_name='f'):
+    """Diagrama limpo da arquitetura sem pesos ou valores."""
+    fig,ax=plt.subplots(figsize=(11,5))
+    ax.set_xlim(0,5.6); ax.set_ylim(-0.22,1.32); ax.axis('off')
+
+    layer_info=[(0.55,'Entrada\n(1 neurônio)'),(1.95,'Oculta A\n(2 neurônios)'),
+                (3.35,'Oculta B\n(2 neurônios)'),(4.75,'Saída\n(1 neurônio)')]
+    for lx,lb in layer_info:
+        ax.text(lx,1.22,lb,ha='center',fontsize=10.5,color=MUTED,
+                linespacing=1.4,va='center')
+
+    nodes={'X':(0.55,0.62),
+           'hA1':(1.95,0.85),'hA2':(1.95,0.38),
+           'hB1':(3.35,0.85),'hB2':(3.35,0.38),
+           'Y': (4.75,0.62)}
+    nc={'X':'#7a5a10','hA1':'#1a508a','hA2':'#1a508a',
+        'hB1':'#1a5830','hB2':'#1a5830','Y':'#7a1a1a'}
+    nl={'X':'X','hA1':r'$h_{A_1}$','hA2':r'$h_{A_2}$',
+        'hB1':r'$h_{B_1}$','hB2':r'$h_{B_2}$','Y':r'$\hat{y}$'}
+    R=0.14
+
+    # setas (sem labels de peso)
+    conns=[('X','hA1'),('X','hA2'),
+           ('hA1','hB1'),('hA1','hB2'),('hA2','hB1'),('hA2','hB2'),
+           ('hB1','Y'),('hB2','Y')]
+    for s,d in conns:
+        xs,ys=nodes[s]; xe,ye=nodes[d]
+        dx,dy=xe-xs,ye-ys; dist=np.sqrt(dx**2+dy**2)
+        ax.annotate("",xy=(xe-(dx/dist)*R,ye-(dy/dist)*R),
+                    xytext=(xs+(dx/dist)*R,ys+(dy/dist)*R),
+                    arrowprops=dict(arrowstyle="->",color='#3a5070',lw=1.4,alpha=0.8))
+
+    # labels das matrizes de pesos entre camadas
+    for wx,wlb,wc in [(1.25,r'$W_1$','#5a8a5a'),(2.65,r'$W_2$','#5a7aaa'),
+                       (4.05,r'$W_3$','#aa5a5a')]:
+        ax.text(wx,1.04,wlb,ha='center',fontsize=14,color=wc,fontweight='bold')
+
+    # função de ativação por camada
+    for ax_x,alab,acol in [(1.95,f'f = {act_name}',TEAL),(3.35,f'f = {act_name}',TEAL),
+                            (4.75,'saida = σ',ORANGE)]:
+        ax.text(ax_x,-0.14,alab,ha='center',fontsize=9.5,color=acol,style='italic')
+
+    # nós
+    for n,(px,py) in nodes.items():
+        circ=plt.Circle((px,py),R,color=nc[n],ec='#889',lw=1.8,zorder=4)
+        ax.add_artist(circ)
+        ax.text(px,py,nl[n],ha='center',va='center',fontsize=11,
+                fontweight='bold',zorder=5,color='#dde8f8',
+                usetex=False)
+
+    ax.set_title('Arquitetura da Rede MLP  (sem pesos — veremos os valores nos próximos passos)',
+                 fontsize=12,color=TEXT,pad=4)
+    plt.tight_layout(); return _b64(fig)
+
+def plot_loss_concept():
+    """Plot motivacional: ideia de descida do gradiente antes de calcular."""
+    fig,axes=plt.subplots(1,2,figsize=(12,5))
+
+    # Painel esquerdo: curva de perda 1D
+    w=np.linspace(-3,3,300)
+    loss=w**2+0.5
+    axes[0].plot(w,loss,color='#3a5a8a',lw=2.5)
+    axes[0].fill_between(w,loss,0.3,alpha=0.10,color=TEAL)
+    # posição inicial e passos
+    traj=[2.4,1.7,1.1,0.6,0.25,0.05]
+    for i in range(len(traj)-1):
+        w0,w1=traj[i],traj[i+1]
+        l0,l1=w0**2+0.5,w1**2+0.5
+        axes[0].annotate("",xy=(w1,l1),xytext=(w0,l0),
+                        arrowprops=dict(arrowstyle="->",color=TEAL,lw=2.0))
+    axes[0].scatter([traj[0]],[traj[0]**2+0.5],s=120,color=ORANGE,zorder=6,
+                   label='inicio (erro alto)',marker='o')
+    axes[0].scatter([0],[0.5],s=180,color=TEAL,zorder=6,label='minimo (objetivo)',marker='*')
+    axes[0].set_xlabel('valor de um peso W',fontsize=12)
+    axes[0].set_ylabel('erro E',fontsize=12)
+    axes[0].set_title('Conceito 1D: cada iteracao\nmove W no sentido de menor E',
+                     color=TEXT,fontsize=12)
+    axes[0].legend(fontsize=10)
+    axes[0].text(2.5,6.2,'partida',ha='center',fontsize=10,color=ORANGE)
+    axes[0].text(0.4,0.35,'minimo',ha='left',fontsize=10,color=TEAL)
+
+    # Painel direito: superficie 2D (contorno)
+    w0v=np.linspace(-2.5,2.5,80); w1v=np.linspace(-2.5,2.5,80)
+    W0,W1=np.meshgrid(w0v,w1v)
+    Z=(W0**2+W1**2+0.5)
+    cf=axes[1].contourf(W0,W1,Z,levels=14,cmap='RdYlGn_r',alpha=0.88)
+    axes[1].contour(W0,W1,Z,levels=8,colors='white',alpha=0.18,linewidths=0.6)
+    plt.colorbar(cf,ax=axes[1],label='erro E',shrink=0.85)
+    # trajetória 2D ilustrativa
+    pts=np.array([[2.2,1.8],[1.5,1.2],[0.9,0.7],[0.4,0.3],[0.1,0.08],[0,0]])
+    axes[1].plot(pts[:,0],pts[:,1],'w--',lw=1.5,alpha=0.7)
+    for i in range(len(pts)-1):
+        dx=pts[i+1,0]-pts[i,0]; dy=pts[i+1,1]-pts[i,1]
+        if np.sqrt(dx**2+dy**2)>0.05:
+            axes[1].annotate("",xy=(pts[i+1,0],pts[i+1,1]),xytext=(pts[i,0],pts[i,1]),
+                            arrowprops=dict(arrowstyle="->",color='white',lw=1.5))
+    axes[1].scatter([pts[0,0]],[pts[0,1]],c=ORANGE,s=130,zorder=8,
+                   marker='o',edgecolors='black',lw=0.5,label='inicio')
+    axes[1].scatter([0],[0],c=TEAL,s=200,zorder=8,
+                   marker='*',edgecolors='black',lw=0.5,label='minimo')
+    axes[1].set_xlabel('W3[0]',fontsize=12); axes[1].set_ylabel('W3[1]',fontsize=12)
+    axes[1].set_title('Conceito 2D: superficie de erro\n(verde escuro = regiao de menor erro)',
+                     color=TEXT,fontsize=12)
+    axes[1].legend(fontsize=10)
+
+    plt.suptitle('O backpropagation navega essa superficie descendo na direcao do gradiente negativo',
+                color=TEXT,fontsize=11)
+    plt.tight_layout(); return _b64(fig)
+
 # ── Diagrama da rede ───────────────────────────────────────────────────────────
 NP={'X':(0.5,0.62),'HA1':(1.9,0.85),'HA2':(1.9,0.38),
     'HB1':(3.3,0.85),'HB2':(3.3,0.38),'Y':(4.7,0.62)}
@@ -436,7 +545,78 @@ ACT_INTRO={
 }
 
 
-# ── Função principal ───────────────────────────────────────────────────────────
+# ── Helper: expansão do cálculo de f'(z) com o valor numérico de z ──────────
+def _dact_expand(act_key, zv, dv, label='z'):
+    """Retorna LaTeX mostrando qual z foi usado e como f'(z) foi calculado."""
+    zv=float(zv); dv=float(dv)
+    if act_key=='sigmoid':
+        sv=float(sigmoid(np.array([zv]))[0])
+        return (f"f'({label})=\\sigma({label})(1-\\sigma({label}))="
+                +f"\\sigma({zv:.4f})\\,(1-\\sigma({zv:.4f}))={sv:.4f}\\times{1-sv:.4f}={dv:.4f}")
+    elif act_key=='relu':
+        cmp=r">" if zv>0 else r"\leq"
+        val="1" if zv>0 else "0"
+        return (f"f'({label})=\\mathbf{{1}}[{label}>0]:"
+                +f"\\quad {zv:.4f}{cmp}0\\;\\Rightarrow\\; f'={val}={dv:.4f}")
+    elif act_key=='tanh':
+        tv=float(np.tanh(zv))
+        return (f"f'({label})=1-\\tanh^2({label})="
+                +f"1-\\tanh^2({zv:.4f})=1-{tv**2:.4f}={dv:.4f}")
+    elif act_key=='leaky_relu':
+        cmp=r">" if zv>0 else r"\leq"
+        val="1" if zv>0 else str(LEAKY_ALPHA)
+        return (f"f'({label})=\\{{1\\;\\text{{ou}}\\;\\alpha\\}}:"
+                +f"\\quad {zv:.4f}{cmp}0\\;\\Rightarrow\\; f'={val}={dv:.4f}")
+    elif act_key=='elu':
+        if zv>0:
+            return (f"f'({label})=1\\;(z>0):"
+                    +f"\\quad {zv:.4f}>0\\;\\Rightarrow\\; f'=1={dv:.4f}")
+        else:
+            exp_val=float(np.exp(np.clip(zv,-500,0)))
+            return (f"f'({label})=\\alpha e^{{{label}}}\\;(z\\leq0):"
+                    +f"\\quad {ELU_ALPHA}\\times e^{{{zv:.4f}}}={ELU_ALPHA}\\times{exp_val:.4f}={dv:.4f}")
+    elif act_key=='swish':
+        sv=float(sigmoid(np.array([zv]))[0])
+        return (f"f'({label})=\\sigma({label})+{label}\\cdot\\sigma({label})(1-\\sigma({label}))="
+                +f"{sv:.4f}+({zv:.4f}\\times{sv:.4f}\\times{1-sv:.4f})={dv:.4f}")
+    return f"f'({label})={dv:.4f}"
+
+
+# ── Diagrama estático da arquitetura (sem pesos/valores) ──────────────────────
+def plot_network_static(act_name='f'):
+    fig,ax=plt.subplots(figsize=(11,4.8))
+    ax.set_xlim(0,5.6); ax.set_ylim(0,1.35); ax.axis('off')
+    nodes={'X':(0.5,0.62),'hA1':(1.9,0.85),'hA2':(1.9,0.38),
+           'hB1':(3.3,0.85),'hB2':(3.3,0.38),'yhat':(4.7,0.62)}
+    cols={'X':'#a07820','hA1':'#1a5fa0','hA2':'#1a5fa0',
+          'hB1':'#1a7040','hB2':'#1a7040','yhat':'#8a2020'}
+    labels={'X':'X','hA1':'hA₁','hA2':'hA₂','hB1':'hB₁','hB2':'hB₂','yhat':'ŷ'}
+    R=0.13
+    conns=[('X','hA1'),('X','hA2'),
+           ('hA1','hB1'),('hA1','hB2'),('hA2','hB1'),('hA2','hB2'),
+           ('hB1','yhat'),('hB2','yhat')]
+    for s,d in conns:
+        xs,ys=nodes[s]; xe,ye=nodes[d]; dx,dy=xe-xs,ye-ys; dist=np.sqrt(dx**2+dy**2)
+        ax.annotate("",xy=(xe-(dx/dist)*R,ye-(dy/dist)*R),
+                    xytext=(xs+(dx/dist)*R,ys+(dy/dist)*R),
+                    arrowprops=dict(arrowstyle="->",color='#3a5070',lw=1.4,alpha=0.75))
+    for n,(px,py) in nodes.items():
+        ax.add_artist(plt.Circle((px,py),R,color=cols[n],ec='#5a7090',lw=1.2,zorder=4))
+        ax.text(px,py,labels[n],ha='center',va='center',fontsize=10.5,
+                fontweight='bold',zorder=5,color='#e2e8f0')
+    for lx,lb in [(0.5,'Entrada'),(1.9,'Oculta A'),(3.3,'Oculta B'),(4.7,'Saída')]:
+        ax.text(lx,1.28,lb,ha='center',fontsize=11.5,color=MUTED,fontweight='bold')
+    ax.text(1.9,0.04,f'z=X·W₁  →  {act_name}(z)',ha='center',fontsize=10,color=TEAL,style='italic')
+    ax.text(3.3,0.04,f'z=hA·W₂  →  {act_name}(z)',ha='center',fontsize=10,color=TEAL,style='italic')
+    ax.text(4.7,0.04,'z=hB·W₃  →  σ(z)',ha='center',fontsize=10,color=ORANGE,style='italic')
+    ax.text(1.2,0.68,'W₁',ha='center',fontsize=10,color='#5588bb',alpha=0.9)
+    ax.text(2.6,0.74,'W₂',ha='center',fontsize=10,color='#5588bb',alpha=0.9)
+    ax.text(4.05,0.68,'W₃',ha='center',fontsize=10,color='#5588bb',alpha=0.9)
+    ax.set_title(f'Arquitetura MLP: 1 → 2 → 2 → 1   |   Ativação oculta: {act_name}   |   Saída: Sigmoide',
+                 color=TEXT,fontsize=11,pad=4)
+    plt.tight_layout(); return _b64(fig)
+
+
 def nn_run_all(X_s,Y_s,lr_s,w1_0,w1_1,w2_00,w2_01,w2_10,w2_11,w3_0,w3_1,epochs_s,act_s="sigmoid"):
     try:
         X=float(X_s); Y=float(Y_s); lr=float(lr_s); epochs=int(epochs_s)
@@ -455,11 +635,28 @@ def nn_run_all(X_s,Y_s,lr_s,w1_0,w1_1,w2_00,w2_01,w2_10,w2_11,w3_0,w3_1,epochs_s
 
         # ── Passo 0: Configuração ────────────────────────────────────────────
         steps.append({"title":"Configuração da Rede","sections":[
+            {"type":"img","content":plot_network_arch(act_name)},
             {"type":"text","content":
              f"Vamos construir uma MLP com 4 camadas: Entrada (1), Oculta A (2), Oculta B (2), Saída (1). "
              f"As camadas ocultas usarão {act_name}; a saída usa sempre Sigmoide para manter ŷ ∈ (0,1)."},
             {"type":"math","content":
              r"X \xrightarrow{W_1} h_A \xrightarrow{W_2} h_B \xrightarrow{W_3} \hat{y}"},
+            {"type":"subtitle","content":"Notação usada em todos os passos"},
+            {"type":"table","headers":["Símbolo","O que é","Como se calcula"],"rows":[
+                ["z_A","Pré-ativação de Oculta A","z_A = X * W1  (antes de aplicar f)"],
+                ["h_A","Ativação de Oculta A",f"h_A = {act_name}(z_A)"],
+                ["z_B","Pré-ativação de Oculta B","z_B = h_A * W2"],
+                ["h_B","Ativação de Oculta B",f"h_B = {act_name}(z_B)"],
+                ["z_Y","Pré-ativação da saída","z_Y = h_B * W3"],
+                ["ŷ","Predição final","ŷ = σ(z_Y)  (sigmoide)"],
+                ["E","Erro MSE","E = ½(y − ŷ)²"],
+                ["δ_Y","Delta da saída","(ŷ − y) * σ'(ŷ)"],
+                ["δ_hB","Delta de Oculta B","δ_Y * W3 * f'(z_B)"],
+                ["δ_hA","Delta de Oculta A","δ_hB * W2ᵀ * f'(z_A)"],
+                ["∇W3","Gradiente de W3","δ_Y * h_B"],
+                ["∇W2","Gradiente de W2","h_A ⊗ δ_hB  (produto externo)"],
+                ["∇W1","Gradiente de W1","δ_hA * X"],
+            ]},
             {"type":"subtitle","content":"Por que os pesos iniciais importam?"},
             {"type":"text","content":
              "Os pesos são os parâmetros que a rede aprende. Antes do treinamento precisamos de valores de partida. "
@@ -468,21 +665,21 @@ def nn_run_all(X_s,Y_s,lr_s,w1_0,w1_1,w2_00,w2_01,w2_10,w2_11,w3_0,w3_1,epochs_s
              "Valores diferentes quebram essa simetria e permitem especialização."},
             {"type":"subtitle","content":"O que cada matriz conecta"},
             {"type":"table","headers":["Matriz","Dimensão","Conecta","Interpretação"],"rows":[
-                ["W1","1 × 2","X → Oculta \\ A",
-                 f"W1[0]={w1_0} \\ escala \\ X \\ para \\ hA1; \\ W1[1]={w1_1} \\ escala \\ X \\ para \\ hA2"],
-                ["W2","2 × 2","Oculta \\ A → Oculta \\ B",
-                 "Cada \\ coluna \\ combina \\ hA1 \\ e \\ hA2 \\ para \\ produzir \\ um \\ neurônio \\ de \\ hB"],
+                ["W1","1 × 2","X → Oculta A",
+                 f"W1[0]={w1_0} escala X para hA1;  W1[1]={w1_1} escala X para hA2"],
+                ["W2","2 × 2","Oculta A → Oculta B",
+                 "Cada coluna combina hA1 e hA2 para produzir um neurônio de hB"],
                 ["W3","2 × 1","Oculta B → Saída",
-                 f"W3[0]={w3_0} \\ pondera \\ hB1; \\ W3[1]={w3_1} \\ pondera \\ hB2"],
+                 f"W3[0]={w3_0} pondera hB1;  W3[1]={w3_1} pondera hB2"],
             ]},
             {"type":"table","headers":["Parâmetro","Valor","Papel"],"rows":[
-                ["X",str(X),"Entrada \\ da \\ rede"],
-                ["y",str(Y),"Alvo \\ que \\ queremos \\ aprender"],
-                ["lr",str(lr),"Tamanho \\ do \\ passo \\ de \\ ajuste"],
-                ["Épocas",str(epochs),"Repetições \\ do \\ ciclo \\ forward→backprop→update"],
-                ["Ativação",act_name,"Função \\ usada \\ nas \\ camadas \\ ocultas"],
+                ["X",str(X),"Entrada da rede"],
+                ["y",str(Y),"Alvo que queremos aprender"],
+                ["lr",str(lr),"Tamanho do passo de ajuste"],
+                ["Epocas",str(epochs),"Repeticoes do ciclo forward→backprop→update"],
+                ["Ativacao",act_name,"Funcao usada nas camadas ocultas"],
             ]},
-            {"type":"highlight","content":f"Objetivo: dado X={X}, ajustar W1,W2,W3 até ŷ ≈ {Y}.","variant":"teal"},
+            {"type":"highlight","content":f"Objetivo: dado X={X}, ajustar W1,W2,W3 ate ŷ ≈ {Y}.","variant":"teal"},
         ]})
 
         # ── Passo 1: Função de Ativação ───────────────────────────────────────
@@ -570,10 +767,27 @@ def nn_run_all(X_s,Y_s,lr_s,w1_0,w1_1,w2_00,w2_01,w2_10,w2_11,w3_0,w3_1,epochs_s
              "variant":"orange"},
         ]})
 
-        # ── Loss Landscape (calculado depois do treinamento, inserido aqui) ──
-        # placeholder — será preenchido após o treinamento completo
+        # ── Passo 4: Conceito de Loss Landscape (antes do backprop) ──────────
         landscape_placeholder_idx=len(steps)
-        steps.append(None)  # reserva posição
+        steps.append({
+            "title":"Por que o Backpropagation Funciona — Intuicao Geometrica",
+            "sections":[
+                {"type":"text","content":
+                 "Antes de ver as contas, vale entender o que estamos tentando fazer. "
+                 "Cada configuração de pesos gera um erro E. "
+                 "Pense nos pesos como coordenadas e no erro como a altitude de uma superfície: "
+                 "queremos descer até o vale de menor altitude."},
+                {"type":"img","content":plot_loss_concept()},
+                {"type":"text","content":
+                 "O backpropagation calcula a inclinação (gradiente) nessa superfície em cada ponto. "
+                 "Mover os pesos na direção oposta ao gradiente garante que descemos. "
+                 "A taxa de aprendizado (lr) controla o tamanho de cada passo."},
+                {"type":"highlight","content":
+                 "No passo final você verá o mapa real de erro com a trajetória exata que o "
+                 "treinamento percorreu. Aqui é apenas a intuição geométrica.",
+                 "variant":"teal"},
+            ]
+        })
 
         # ── Backpropagation Época 1 ───────────────────────────────────────────
         W1b=W1.copy(); W2b=W2.copy(); W3b=W3.copy()
@@ -606,64 +820,136 @@ def nn_run_all(X_s,Y_s,lr_s,w1_0,w1_1,w2_00,w2_01,w2_10,w2_11,w3_0,w3_1,epochs_s
             r"f'(z)=\sigma(z)(1+z(1-\sigma(z)))"
         )
         bp_sections=[
+            # ── Card de referência rápida ──────────────────────────────────────
+            {"type":"subtitle","content":"Mapa de referência — o que cada símbolo representa"},
+            {"type":"text","content":
+             "Antes das contas, aqui está um guia de todos os símbolos que aparecem neste passo. "
+             "Os valores são os calculados no forward pass da época 1."},
+            {"type":"table",
+             "headers":["Símbolo","O que é","Valor (época 1)"],
+             "rows":[
+                ["ŷ",  "Predição atual da rede",            f"{yp:.4f}"],
+                ["y",  "Alvo que queremos atingir",         str(Y)],
+                ["zB1","Pré-ativação de hB1 (antes de f)",  f"{zB[0]:.4f}"],
+                ["zB2","Pré-ativação de hB2 (antes de f)",  f"{zB[1]:.4f}"],
+                ["hB1","Ativação de Oculta B, neurônio 1",  f"{hB[0]:.4f}"],
+                ["hB2","Ativação de Oculta B, neurônio 2",  f"{hB[1]:.4f}"],
+                ["zA1","Pré-ativação de hA1 (antes de f)",  f"{zA[0]:.4f}"],
+                ["zA2","Pré-ativação de hA2 (antes de f)",  f"{zA[1]:.4f}"],
+                ["hA1","Ativação de Oculta A, neurônio 1",  f"{hA[0]:.4f}"],
+                ["hA2","Ativação de Oculta A, neurônio 2",  f"{hA[1]:.4f}"],
+                ["delta_Y","Sinal de erro ponderado na saída", f"{dY:.6f}"],
+                ["nablaW", "Gradiente de W = quanto E muda ao variar W","—"],
+                ["delta_hB","Erro propagado para Oculta B", f"[{dhB[0]:.6f}, {dhB[1]:.6f}]"],
+                ["delta_hA","Erro propagado para Oculta A", f"[{dhA[0]:.6f}, {dhA[1]:.6f}]"],
+             ]},
+            {"type":"highlight","content":
+             f"Regra geral de atualização: W ← W − lr × ∇W    "
+             f"com lr = {lr}. "
+             "O gradiente ∇W de cada peso é o produto do delta da camada seguinte "
+             "pela ativação da camada anterior.",
+             "variant":"teal"},
+            # ── Diagrama ──────────────────────────────────────────────────────
             {"type":"text","content":
              "O backpropagation aplica a regra da cadeia de trás para frente. "
-             "Cada δ mede a 'culpa' de um neurônio no erro final. "
-             "Os nós agora são coloridos: verde = gradiente forte, amarelo = moderado, vermelho = fraco."},
+             "Cada δ mede a responsabilidade de um neurônio no erro final. "
+             "Nós coloridos: verde = gradiente forte, amarelo = moderado, vermelho = fraco."},
             {"type":"img","content":plot_backprop(X,dW1,dW2,dW3,dhA,dhB,dY,
                 f"Época 1 — Backpropagation  (nós coloridos por magnitude de δ)",
                 grad_mags=grad_mags_ep1)},
-            {"type":"subtitle","content":"① δ_Y — delta da saída (sigmoide)"},
+            # ── ① δ_Y ─────────────────────────────────────────────────────────
+            {"type":"subtitle","content":"① delta_Y — sinal de erro na saída"},
+            {"type":"text","content":
+             "A saída usa sigmoide, cuja derivada a partir da própria saída ŷ é ŷ(1−ŷ):"},
             {"type":"math","content":
              r"\sigma'(\hat{y})=\hat{y}(1-\hat{y})="+f"{yp:.4f}\\times{1-yp:.4f}={dsY:.4f}"},
             {"type":"math","content":
              r"\delta_Y=(\hat{y}-y)\cdot\sigma'(\hat{y})="
              +f"({yp:.4f}-{Y})\\times{dsY:.4f}={dY:.6f}"},
-            {"type":"subtitle","content":f"② ∇W3  e  δ_hB — derivada de {act_name}"},
+            # ── ② f'(z_B), ∇W3, δ_hB ─────────────────────────────────────────
+            {"type":"subtitle","content":f"② nablaW3 e delta_hB  —  derivada de {act_name} aplicada a z_B"},
+            {"type":"text","content":
+             f"Precisamos de f'(z_B) para propagar o erro pela camada Oculta B. "
+             f"Usamos os z_B calculados no forward pass: z_B1={zB[0]:.4f}, z_B2={zB[1]:.4f}."},
             {"type":"math","content":
-             form_d_act+r"\;\Rightarrow\; f'(z_{B_1})="+f"{dsB[0]:.4f}"
-             +r",\; f'(z_{B_2})="+f"{dsB[1]:.4f}"},
+             r"z_{B_1}="+f"{zB[0]:.4f}"+r"\quad\Rightarrow\quad"
+             +_dact_expand(act_key,zB[0],dsB[0],r"z_{B_1}")},
+            {"type":"math","content":
+             r"z_{B_2}="+f"{zB[1]:.4f}"+r"\quad\Rightarrow\quad"
+             +_dact_expand(act_key,zB[1],dsB[1],r"z_{B_2}")},
+            {"type":"text","content":
+             "Gradiente de W3 = delta_Y × hB  (ativação que alimentou esse peso):"},
             {"type":"math","content":
              r"\nabla W_3[0]=\delta_Y\times h_{B_1}="
              +f"{dY:.4f}\\times{hB[0]:.4f}={dW3[0]:.4f}"},
             {"type":"math","content":
+             r"\nabla W_3[1]=\delta_Y\times h_{B_2}="
+             +f"{dY:.4f}\\times{hB[1]:.4f}={dW3[1]:.4f}"},
+            {"type":"text","content":
+             "Delta propagado para cada neurônio de Oculta B = delta_Y × peso_W3 × f'(z_B):"},
+            {"type":"math","content":
              r"\delta_{h_{B_1}}=\delta_Y\times W_3[0]\times f'(z_{B_1})="
              +f"{dY:.4f}\\times{W3b[0]:.4f}\\times{dsB[0]:.4f}={dhB[0]:.6f}"},
-            {"type":"subtitle","content":"③ ∇W2"},
             {"type":"math","content":
-             r"\nabla W_2=\begin{bmatrix}"
-             +f"{hA[0]:.3f}\\times{dhB[0]:.4f}&{hA[0]:.3f}\\times{dhB[1]:.4f}"
-             +r"\\"+f"{hA[1]:.3f}\\times{dhB[0]:.4f}&{hA[1]:.3f}\\times{dhB[1]:.4f}"
+             r"\delta_{h_{B_2}}=\delta_Y\times W_3[1]\times f'(z_{B_2})="
+             +f"{dY:.4f}\\times{W3b[1]:.4f}\\times{dsB[1]:.4f}={dhB[1]:.6f}"},
+            # ── ③ ∇W2 ─────────────────────────────────────────────────────────
+            {"type":"subtitle","content":"③ nablaW2  —  gradientes da camada Oculta B → Oculta A"},
+            {"type":"text","content":
+             "Gradiente de W2 = produto externo de hA (entrada da camada) por delta_hB (erro da camada):"},
+            {"type":"math","content":
+             r"\nabla W_2=h_A\otimes\delta_{h_B}=\begin{bmatrix}"
+             +f"{hA[0]:.3f}\\\\{hA[1]:.3f}"
+             +r"\end{bmatrix}\otimes\begin{bmatrix}"
+             +f"{dhB[0]:.4f}&{dhB[1]:.4f}"
              +r"\end{bmatrix}=\begin{bmatrix}"
              +f"{dW2[0,0]:.4f}&{dW2[0,1]:.4f}"
              +r"\\"+f"{dW2[1,0]:.4f}&{dW2[1,1]:.4f}"
              +r"\end{bmatrix}"},
-            {"type":"subtitle","content":"④ δ_hA e ∇W1"},
+            # ── ④ f'(z_A), δ_hA, ∇W1 ─────────────────────────────────────────
+            {"type":"subtitle","content":"④ delta_hA e nablaW1  —  propagando até a primeira camada"},
+            {"type":"text","content":
+             f"Mesma lógica: usamos z_A1={zA[0]:.4f}, z_A2={zA[1]:.4f} do forward pass:"},
             {"type":"math","content":
-             r"f'(z_{A_1})="+f"{dsA[0]:.4f}"+r",\quad f'(z_{A_2})="+f"{dsA[1]:.4f}"},
+             r"z_{A_1}="+f"{zA[0]:.4f}"+r"\quad\Rightarrow\quad"
+             +_dact_expand(act_key,zA[0],dsA[0],r"z_{A_1}")},
+            {"type":"math","content":
+             r"z_{A_2}="+f"{zA[1]:.4f}"+r"\quad\Rightarrow\quad"
+             +_dact_expand(act_key,zA[1],dsA[1],r"z_{A_2}")},
+            {"type":"text","content":
+             "Delta de Oculta A = soma ponderada dos deltas de Oculta B × f'(z_A):"},
             {"type":"math","content":
              r"\delta_{h_{A_1}}=(\delta_{h_{B_1}}\cdot W_2[0,0]+\delta_{h_{B_2}}\cdot W_2[0,1])\cdot f'(z_{A_1})="
              +f"({dhB[0]:.4f}\\cdot{W2b[0,0]}+{dhB[1]:.4f}\\cdot{W2b[0,1]})\\cdot{dsA[0]:.4f}={dhA[0]:.6f}"},
             {"type":"math","content":
+             r"\delta_{h_{A_2}}=(\delta_{h_{B_1}}\cdot W_2[1,0]+\delta_{h_{B_2}}\cdot W_2[1,1])\cdot f'(z_{A_2})="
+             +f"({dhB[0]:.4f}\\cdot{W2b[1,0]}+{dhB[1]:.4f}\\cdot{W2b[1,1]})\\cdot{dsA[1]:.4f}={dhA[1]:.6f}"},
+            {"type":"math","content":
              r"\nabla W_1[0]=\delta_{h_{A_1}}\times X="
              +f"{dhA[0]:.6f}\\times{X}={dW1[0]:.6f}"},
-            {"type":"subtitle","content":f"⑤ Atualização  (W ← W − {lr} · ∇W)"},
-            {"type":"table","headers":["Peso","Antes","−lr·∇","Depois"],"rows":[
-                ["W3[0]",f"{W3b[0]:.4f}",f"−{lr}×{dW3[0]:.4f}={-lr*dW3[0]:.4f}",f"{W3[0]:.4f}"],
-                ["W3[1]",f"{W3b[1]:.4f}",f"−{lr}×{dW3[1]:.4f}={-lr*dW3[1]:.4f}",f"{W3[1]:.4f}"],
-                ["W2[0,0]",f"{W2b[0,0]:.4f}",f"−{lr}×{dW2[0,0]:.4f}={-lr*dW2[0,0]:.4f}",f"{W2[0,0]:.4f}"],
-                ["W2[0,1]",f"{W2b[0,1]:.4f}",f"−{lr}×{dW2[0,1]:.4f}={-lr*dW2[0,1]:.4f}",f"{W2[0,1]:.4f}"],
-                ["W2[1,0]",f"{W2b[1,0]:.4f}",f"−{lr}×{dW2[1,0]:.4f}={-lr*dW2[1,0]:.4f}",f"{W2[1,0]:.4f}"],
-                ["W2[1,1]",f"{W2b[1,1]:.4f}",f"−{lr}×{dW2[1,1]:.4f}={-lr*dW2[1,1]:.4f}",f"{W2[1,1]:.4f}"],
-                ["W1[0]",f"{W1b[0]:.4f}",f"−{lr}×{dW1[0]:.4f}={-lr*dW1[0]:.4f}",f"{W1[0]:.4f}"],
-                ["W1[1]",f"{W1b[1]:.4f}",f"−{lr}×{dW1[1]:.4f}={-lr*dW1[1]:.4f}",f"{W1[1]:.4f}"],
+            {"type":"math","content":
+             r"\nabla W_1[1]=\delta_{h_{A_2}}\times X="
+             +f"{dhA[1]:.6f}\\times{X}={dW1[1]:.6f}"},
+            # ── ⑤ Atualização ─────────────────────────────────────────────────
+            {"type":"subtitle","content":f"⑤ Atualização  (W ← W − {lr} × nablaW)"},
+            {"type":"table","headers":["Peso","Antes","−lr × nablaW","Depois"],"rows":[
+                ["W3[0]",f"{W3b[0]:.4f}",f"-{lr} x {dW3[0]:.4f} = {-lr*dW3[0]:.4f}",f"{W3[0]:.4f}"],
+                ["W3[1]",f"{W3b[1]:.4f}",f"-{lr} x {dW3[1]:.4f} = {-lr*dW3[1]:.4f}",f"{W3[1]:.4f}"],
+                ["W2[0,0]",f"{W2b[0,0]:.4f}",f"-{lr} x {dW2[0,0]:.4f} = {-lr*dW2[0,0]:.4f}",f"{W2[0,0]:.4f}"],
+                ["W2[0,1]",f"{W2b[0,1]:.4f}",f"-{lr} x {dW2[0,1]:.4f} = {-lr*dW2[0,1]:.4f}",f"{W2[0,1]:.4f}"],
+                ["W2[1,0]",f"{W2b[1,0]:.4f}",f"-{lr} x {dW2[1,0]:.4f} = {-lr*dW2[1,0]:.4f}",f"{W2[1,0]:.4f}"],
+                ["W2[1,1]",f"{W2b[1,1]:.4f}",f"-{lr} x {dW2[1,1]:.4f} = {-lr*dW2[1,1]:.4f}",f"{W2[1,1]:.4f}"],
+                ["W1[0]",f"{W1b[0]:.4f}",f"-{lr} x {dW1[0]:.4f} = {-lr*dW1[0]:.4f}",f"{W1[0]:.4f}"],
+                ["W1[1]",f"{W1b[1]:.4f}",f"-{lr} x {dW1[1]:.4f} = {-lr*dW1[1]:.4f}",f"{W1[1]:.4f}"],
             ]},
+            # ── ⑥ Fluxo do gradiente ──────────────────────────────────────────
             {"type":"subtitle","content":"⑥ Fluxo do gradiente por camada"},
             {"type":"text","content":
              "Quanto do sinal de erro chegou a cada camada? "
-             "O gráfico mostra a magnitude média de δ e a fração preservada em relação à saída."},
+             "O gráfico mostra a magnitude média de delta e a fração preservada em relação à saída."},
             {"type":"img","content":plot_gradient_flow(dhA,dhB,dY,act_name)},
-            {"type":"subtitle","content":"⑦ Pesos antes vs. depois (Δ)"},
+            # ── ⑦ Pesos antes vs depois ───────────────────────────────────────
+            {"type":"subtitle","content":"⑦ Pesos antes vs. depois — variação da época 1"},
             {"type":"img","content":plot_weight_delta(W1b,W1,W2b,W2,W3b,W3)},
         ]
         if vanishing_note:
@@ -817,8 +1103,8 @@ def nn_run_all(X_s,Y_s,lr_s,w1_0,w1_1,w2_00,w2_01,w2_10,w2_11,w3_0,w3_1,epochs_s
             "w3_init":[float(w3_0),float(w3_1)],
             "yp_f":float(yp_f),"err_f":float(hist_e[-1])
         }
-        return json.dumps({"ok":True,"steps":steps,"summary":summary})
+        return json.dumps({"ok":True,"steps":steps,"summary":summary}, ensure_ascii=False)
 
     except Exception as e:
         import traceback
-        return json.dumps({"ok":False,"error":str(e),"tb":traceback.format_exc()})
+        return json.dumps({"ok":False,"error":str(e),"tb":traceback.format_exc()}, ensure_ascii=False)
