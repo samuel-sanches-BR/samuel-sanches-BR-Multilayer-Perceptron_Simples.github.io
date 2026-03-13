@@ -654,7 +654,7 @@ def nn_run_all(X_s,Y_s,lr_s,w1_0,w1_1,w2_00,w2_01,w2_10,w2_11,w3_0,w3_1,epochs_s
                 ["δ_{hB}","Delta de Oculta B","δ_Y * W3 * f'(z_B)"],
                 ["δ_{hA}","Delta de Oculta A","δ_{hB} * W2ᵀ * f'(z_A)"],
                 ["∇W3","Gradiente de W3","δ_Y * h_B"],
-                ["∇W2","Gradiente de W2","h_A ⊗ δ_{hB}  (produto \\ externo)"],
+                ["∇W2","Gradiente de W2","h_A ⊗ δ_{hB} \\ (produto \\ externo)"],
                 ["∇W1","Gradiente de W1","δ_{hA} * X"],
             ]},
             {"type":"subtitle","content":"Por que os pesos iniciais importam?"},
@@ -878,7 +878,7 @@ def nn_run_all(X_s,Y_s,lr_s,w1_0,w1_1,w2_00,w2_01,w2_10,w2_11,w3_0,w3_1,epochs_s
              r"z_{B_2}="+f"{zB[1]:.4f}"+r"\quad\Rightarrow\quad"
              +_dact_expand(act_key,zB[1],dsB[1],r"z_{B_2}")},
             {"type":"text","content":
-             "Gradiente de W3 = delta_Y × hB  (ativação que alimentou esse peso):"},
+             "Gradiente de W3 = δ_Y × hB  (ativação que alimentou esse peso):"},
             {"type":"math","content":
              r"\nabla W_3[0]=\delta_Y\times h_{B_1}="
              +f"{dY:.4f}\\times{hB[0]:.4f}={dW3[0]:.4f}"},
@@ -886,7 +886,7 @@ def nn_run_all(X_s,Y_s,lr_s,w1_0,w1_1,w2_00,w2_01,w2_10,w2_11,w3_0,w3_1,epochs_s
              r"\nabla W_3[1]=\delta_Y\times h_{B_2}="
              +f"{dY:.4f}\\times{hB[1]:.4f}={dW3[1]:.4f}"},
             {"type":"text","content":
-             "Delta propagado para cada neurônio de Oculta B = delta_Y × peso_W3 × f'(z_B):"},
+             "Delta propagado para cada neurônio de Oculta B = δ_Y × peso_W3 × f'(z_B):"},
             {"type":"math","content":
              r"\delta_{h_{B_1}}=\delta_Y\times W_3[0]\times f'(z_{B_1})="
              +f"{dY:.4f}\\times{W3b[0]:.4f}\\times{dsB[0]:.4f}={dhB[0]:.6f}"},
@@ -894,7 +894,7 @@ def nn_run_all(X_s,Y_s,lr_s,w1_0,w1_1,w2_00,w2_01,w2_10,w2_11,w3_0,w3_1,epochs_s
              r"\delta_{h_{B_2}}=\delta_Y\times W_3[1]\times f'(z_{B_2})="
              +f"{dY:.4f}\\times{W3b[1]:.4f}\\times{dsB[1]:.4f}={dhB[1]:.6f}"},
             # ── ③ ∇W2 ─────────────────────────────────────────────────────────
-            {"type":"subtitle","content":"③ nablaW2  —  gradientes da camada Oculta B → Oculta A"},
+            {"type":"subtitle","content":"③ ∇W2  —  gradientes da camada Oculta B → Oculta A"},
             {"type":"text","content":
              "Gradiente de W2 = produto externo de hA (entrada da camada) por delta_hB (erro da camada):"},
             {"type":"math","content":
@@ -907,7 +907,7 @@ def nn_run_all(X_s,Y_s,lr_s,w1_0,w1_1,w2_00,w2_01,w2_10,w2_11,w3_0,w3_1,epochs_s
              +r"\\"+f"{dW2[1,0]:.4f}&{dW2[1,1]:.4f}"
              +r"\end{bmatrix}"},
             # ── ④ f'(z_A), δ_hA, ∇W1 ─────────────────────────────────────────
-            {"type":"subtitle","content":"④ delta_hA e nablaW1  —  propagando até a primeira camada"},
+            {"type":"subtitle","content":"④ δ_hA e ∇W1  —  propagando até a primeira camada"},
             {"type":"text","content":
              f"Mesma lógica: usamos z_A1={zA[0]:.4f}, z_A2={zA[1]:.4f} do forward pass:"},
             {"type":"math","content":
@@ -931,8 +931,8 @@ def nn_run_all(X_s,Y_s,lr_s,w1_0,w1_1,w2_00,w2_01,w2_10,w2_11,w3_0,w3_1,epochs_s
              r"\nabla W_1[1]=\delta_{h_{A_2}}\times X="
              +f"{dhA[1]:.6f}\\times{X}={dW1[1]:.6f}"},
             # ── ⑤ Atualização ─────────────────────────────────────────────────
-            {"type":"subtitle","content":f"⑤ Atualização  (W ← W − {lr} × nablaW)"},
-            {"type":"table","headers":["Peso","Antes","−lr × nablaW","Depois"],"rows":[
+            {"type":"subtitle","content":f"⑤ Atualização  (W ← W − {lr} × ∇W)"},
+            {"type":"table","headers":["Peso","Antes","−lr × ∇W","Depois"],"rows":[
                 ["W3[0]",f"{W3b[0]:.4f}",f"-{lr} x {dW3[0]:.4f} = {-lr*dW3[0]:.4f}",f"{W3[0]:.4f}"],
                 ["W3[1]",f"{W3b[1]:.4f}",f"-{lr} x {dW3[1]:.4f} = {-lr*dW3[1]:.4f}",f"{W3[1]:.4f}"],
                 ["W2[0,0]",f"{W2b[0,0]:.4f}",f"-{lr} x {dW2[0,0]:.4f} = {-lr*dW2[0,0]:.4f}",f"{W2[0,0]:.4f}"],
@@ -1074,9 +1074,10 @@ def nn_run_all(X_s,Y_s,lr_s,w1_0,w1_1,w2_00,w2_01,w2_10,w2_11,w3_0,w3_1,epochs_s
             "type":"subtitle","content":"Revisitando o Loss Landscape — onde o treinamento chegou"})
         estado_final_secs.append({
             "type":"text","content":
-            "O mesmo mapa de erro exibido no passo 4, agora com a trajetória completa. "
+            "Onde estamos no espaço do erro?" 
+            "Este mapa mostra como o MSE varia conforme mudamos apenas W3[0] e W3[1], mantendo W1 e W2 fixos nos valores iniciais. "
             "A estrela teal mostra onde os pesos de W3 estão após todas as épocas — "
-            "confirme que o algoritmo de fato desceu em direção ao vale."})
+            "confirmando que o algoritmo de fato desceu em direção ao vale."})
         estado_final_secs.append({"type":"img","content":landscape_img})
         estado_final_secs.append({
             "type":"subtitle",
