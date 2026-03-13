@@ -493,6 +493,10 @@ function resetAll(){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
+function looksLikeMath(s){
+  return /\\[a-zA-Z{]|[\^_{}]|\\frac|\\sigma|\\delta|\\nabla|\\hat|\\cdot|\\times|\\begin|\\sqrt|\\otimes/.test(s);
+}
+
 function renderSection(sec){
   const d=document.createElement('div');
   if(sec.type==='text'){
@@ -525,7 +529,9 @@ function renderSection(sec){
       const tr=document.createElement('tr');
       row.forEach(cell=>{
         const td=document.createElement('td');
-        td.setAttribute('data-math',cell);
+        if(looksLikeMath(cell)){
+          td.setAttribute('data-math',cell);
+        }
         td.textContent=cell;
         tr.appendChild(td);
       });
