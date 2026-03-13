@@ -767,6 +767,29 @@ def nn_run_all(X_s,Y_s,lr_s,w1_0,w1_1,w2_00,w2_01,w2_10,w2_11,w3_0,w3_1,epochs_s
              "variant":"orange"},
         ]})
 
+                # ── Passo 4: Conceito de Loss Landscape (antes do backprop) ──────────
+        landscape_placeholder_idx=len(steps)
+        steps.append({
+            "title":"Por que o Backpropagation Funciona — Intuicao Geometrica",
+            "sections":[
+                {"type":"text","content":
+                 "Antes de ver as contas, vale entender o que estamos tentando fazer. "
+                 "Cada configuração de pesos gera um erro E. "
+                 "Pense nos pesos como coordenadas e no erro como a altitude de uma superfície: "
+                 "queremos descer até o vale de menor altitude."},
+                {"type":"img","content":plot_loss_concept()},
+                {"type":"text","content":
+                 "O backpropagation calcula a inclinação (gradiente) nessa superfície em cada ponto. "
+                 "Mover os pesos na direção oposta ao gradiente garante que descemos. "
+                 "A taxa de aprendizado (lr) controla o tamanho de cada passo."},
+                {"type":"highlight","content":
+                 "No passo final você verá o mapa real de erro com a trajetória exata que o "
+                 "treinamento percorreu. Aqui é apenas a intuição geométrica.",
+                 "variant":"teal"},
+            ]
+        })
+ 
+
 
 
         # ── Backpropagation Época 1 ───────────────────────────────────────────
