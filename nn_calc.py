@@ -7,10 +7,13 @@ import io, base64, json
 plt.rcParams.update({
     'figure.facecolor':'#111827','axes.facecolor':'#0a0e1a',
     'axes.edgecolor':'#1e2d45','axes.labelcolor':'#94a3b8',
-    'xtick.color':'#64748b','ytick.color':'#64748b',
+    'xtick.color':'#94a3b8','ytick.color':'#94a3b8',
+    'xtick.labelsize':11,'ytick.labelsize':11,
+    'axes.labelsize':12,'axes.titlesize':13,
     'text.color':'#e2e8f0','grid.color':'#1e2d45',
     'grid.linewidth':0.6,'axes.grid':True,
-    'legend.facecolor':'#111827','legend.edgecolor':'#1e2d45','legend.fontsize':8,
+    'legend.facecolor':'#111827','legend.edgecolor':'#1e2d45','legend.fontsize':10,
+    'font.size':11,
 })
 TEAL='#00d4aa'; ORANGE='#ff6b35'; MUTED='#64748b'; TEXT='#e2e8f0'
 LEAKY_ALPHA=0.01; ELU_ALPHA=1.0
@@ -50,7 +53,7 @@ ACT_FNS={
 
 def _b64(fig):
     buf=io.BytesIO()
-    plt.savefig(buf,format='png',bbox_inches='tight',dpi=90)
+    plt.savefig(buf,format='png',bbox_inches='tight',dpi=110)
     s='data:image/png;base64,'+base64.b64encode(buf.getvalue()).decode()
     plt.close(fig); return s
 
@@ -62,17 +65,17 @@ NC={'X':'#a07820','HA1':'#2060a0','HA2':'#2060a0',
 R=0.13
 
 def _base_ax():
-    fig,ax=plt.subplots(figsize=(10,4.2))
+    fig,ax=plt.subplots(figsize=(11,5))
     ax.set_xlim(0,5.4); ax.set_ylim(-0.05,1.18); ax.axis('off')
     for lx,lb in [(0.5,'Entrada X'),(1.9,'Oculta A'),(3.3,'Oculta B'),(4.7,'Saída ŷ')]:
-        ax.text(lx,1.10,lb,ha='center',fontsize=8.5,color=MUTED,style='italic')
+        ax.text(lx,1.10,lb,ha='center',fontsize=11,color=MUTED,style='italic')
     return fig,ax
 
 def _arrow(ax,src,dst,color,lbl,sgn):
     xs,ys=NP[src]; xe,ye=NP[dst]; dx,dy=xe-xs,ye-ys; d=np.sqrt(dx**2+dy**2)
     ax.annotate("",xy=(xe-(dx/d)*R,ye-(dy/d)*R),xytext=(xs+(dx/d)*R,ys+(dy/d)*R),
                 arrowprops=dict(arrowstyle="->",color=color,lw=1.5,alpha=0.85))
-    ax.text((xs+xe)/2,(ys+ye)/2+sgn*0.055,lbl,fontsize=6.5,ha='center',color=color,
+    ax.text((xs+xe)/2,(ys+ye)/2+sgn*0.055,lbl,fontsize=8.5,ha='center',color=color,
             fontweight='bold',bbox=dict(boxstyle='round,pad=0.12',fc='#111827',ec='none',alpha=0.92))
 
 def _nodes(ax,vals,delta=False,grad_mags=None):
@@ -87,11 +90,11 @@ def _nodes(ax,vals,delta=False,grad_mags=None):
             ec_color='#556'; lw=1.5
         ax.add_artist(plt.Circle((px,py),R,color=NC[n],ec=ec_color,lw=lw,zorder=4))
         top=n if (not delta or n=='X') else 'δ'
-        ax.text(px,py+0.030,top,ha='center',va='center',fontsize=7.5,
+        ax.text(px,py+0.030,top,ha='center',va='center',fontsize=9.5,
                 fontweight='bold',zorder=5,color='#cbd5e1')
         vc=ORANGE if (delta and n!='X') else TEXT
         ax.text(px,py-0.055,f"{vals.get(n,0):.4f}",ha='center',va='center',
-                fontsize=7,color=vc,zorder=5)
+                fontsize=8.5,color=vc,zorder=5)
     # colorbar legend if gradient mode
     if delta and grad_mags:
         sm=mcm.ScalarMappable(cmap='RdYlGn',norm=mcolors.Normalize(0,max_mag))
@@ -105,7 +108,7 @@ def _nodes(ax,vals,delta=False,grad_mags=None):
 def plot_activation(act_key):
     fn,dfn,name,color=ACT_FNS[act_key]
     z=np.linspace(-4,4,300); y=fn(z); dy=dfn(z)
-    fig,axes=plt.subplots(1,2,figsize=(9,3.5))
+    fig,axes=plt.subplots(1,2,figsize=(11,4.5))
 
     axes[0].plot(z,np.clip(y,-2,5),color=color,lw=2.5)
     axes[0].axhline(0,color=MUTED,ls=':',lw=0.8)
@@ -171,7 +174,7 @@ def plot_activation(act_key):
 
 def plot_activation_comparison():
     z=np.linspace(-4,4,300)
-    fig,axes=plt.subplots(1,2,figsize=(11,4))
+    fig,axes=plt.subplots(1,2,figsize=(13,5))
     order=['sigmoid','relu','tanh','leaky_relu','elu','swish']
     for key in order:
         fn,dfn,name,color=ACT_FNS[key]
@@ -222,7 +225,7 @@ def plot_gradient_flow(dhA,dhB,dY,act_name):
     max_v=max(vals) if max(vals)>0 else 1.0
     colors=[mcolors.to_hex(mcm.RdYlGn(v/max_v)) for v in vals]
 
-    fig,axes=plt.subplots(1,2,figsize=(10,3.5))
+    fig,axes=plt.subplots(1,2,figsize=(12,4.5))
     y_pos=np.arange(3)
 
     # Magnitudes absolutas
@@ -272,7 +275,7 @@ def plot_loss_landscape(X,Y_target,W1_fixed,W2_fixed,hist_w3,act_fn,act_name):
             yp=sigmoid(zY)
             Z[j,i]=0.5*(Y_target-yp)**2
 
-    fig,ax=plt.subplots(figsize=(8,6))
+    fig,ax=plt.subplots(figsize=(9,7))
     cf=ax.contourf(w0v,w1v,Z,levels=25,cmap='RdYlGn_r',alpha=0.9)
     ax.contour(w0v,w1v,Z,levels=12,colors='white',alpha=0.2,linewidths=0.5)
     plt.colorbar(cf,ax=ax,label='Erro MSE',shrink=0.8)
@@ -306,7 +309,7 @@ def plot_weight_delta(W1b,W1,W2b,W2,W3b,W3):
     before=[W1b[0],W1b[1],W2b[0,0],W2b[0,1],W2b[1,0],W2b[1,1],W3b[0],W3b[1]]
     after =[W1[0], W1[1], W2[0,0], W2[0,1], W2[1,0], W2[1,1], W3[0], W3[1]]
     deltas=[a-b for a,b in zip(after,before)]
-    fig,axes=plt.subplots(1,2,figsize=(11,4))
+    fig,axes=plt.subplots(1,2,figsize=(13,5))
     y=np.arange(len(labels))
 
     axes[0].barh(y-0.22,before,height=0.38,color=MUTED,alpha=0.75,label='Antes')
@@ -330,7 +333,7 @@ def plot_weight_delta(W1b,W1,W2b,W2,W3b,W3):
 
 def plot_learning_curve(hist_err,hist_pred,Y,lr,X,epochs,act_name):
     ep=list(range(1,len(hist_err)+1))
-    fig,axes=plt.subplots(1,2,figsize=(10,4))
+    fig,axes=plt.subplots(1,2,figsize=(12,5))
     axes[0].plot(ep,hist_err,color=ORANGE,lw=2)
     marks=sorted(set([0,min(9,len(hist_err)-1),len(hist_err)//2,len(hist_err)-1]))
     axes[0].scatter([ep[m] for m in marks],[hist_err[m] for m in marks],
